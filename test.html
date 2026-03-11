@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder | Discover Your Career</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background: #f8fafc;
+        }
+
+        /* Vibrant animated backgrounds */
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+        }
+
+        .step-container {
+            display: none;
+            animation: slideUpFade 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        .step-container.active {
+            display: block;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .progress-bar-fill {
+            transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+        }
+
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-card:hover {
+            transform: scale(1.02) translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loader {
+            border-top-color: #6366f1;
+            animation: spinner 0.8s linear infinite;
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .confetti-slow {
+            animation: confetti 10s linear infinite;
+        }
+
+        @keyframes confetti {
+            0% { transform: translateY(-10vh) rotate(0deg); }
+            100% { transform: translateY(110vh) rotate(360deg); }
+        }
+
+        .btn-vibrant {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-vibrant:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        }
+    </style>
+</head>
+<body class="text-slate-900 selection:bg-indigo-100">
+    <div class="bg-mesh"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full h-16 bg-white/70 backdrop-blur-xl border-b border-white/20 z-50 flex items-center justify-between px-6">
+        <div class="flex items-center gap-2 font-black text-2xl tracking-tighter text-indigo-600 cursor-pointer" onclick="location.reload()">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                <i class="fa-solid fa-rocket text-sm"></i>
+            </div>
+            <span>PathFinder</span>
+        </div>
+        <div id="quiz-progress" class="hidden flex items-center gap-4">
+            <div class="w-24 md:w-48 h-2.5 bg-slate-200/50 rounded-full overflow-hidden">
+                <div id="progress-fill" class="progress-bar-fill h-full" style="width: 0%"></div>
+            </div>
+            <span id="progress-text" class="text-xs font-bold text-slate-500 uppercase tracking-widest">1/3</span>
+        </div>
+    </nav>
+
+    <main class="pt-16 max-w-2xl mx-auto px-6 flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
+        
+        <!-- Step 1: Landing -->
+        <section id="step-landing" class="step-container active text-center space-y-10 py-12">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 border border-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm mb-4 floating">
+                <i class="fa-solid fa-sparkles text-amber-400"></i>
+                Join 50,000+ career explorers
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] text-slate-900">
+                Design your <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">dream life.</span>
+            </h1>
+            <p class="text-xl text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
+                The most fun way to find a career path that actually fits your vibe and personality.
+            </p>
+            <button onclick="startQuiz()" class="btn-vibrant w-full sm:w-auto px-10 py-5 text-white rounded-2xl font-extrabold text-xl shadow-2xl flex items-center justify-center gap-3">
+                Start My Journey
+                <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+            
+            <div class="grid grid-cols-3 gap-6 pt-12">
+                <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-500 text-xl"></i>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">Fast Results</span>
+                </div>
+                <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-brain text-purple-500 text-xl"></i>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">AI Powered</span>
+                </div>
+                <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-blue-500 text-xl"></i>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">Expert Picks</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Quiz -->
+        <section id="step-quiz" class="step-container w-full py-12">
+            <div class="space-y-10">
+                <div class="space-y-3">
+                    <h2 id="question-title" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">Which environment fuels your energy?</h2>
+                    <p id="question-subtitle" class="text-slate-500 text-xl font-medium">Pick the one that feels most like 'you'.</p>
+                </div>
+
+                <div id="options-grid" class="grid gap-4">
+                    <!-- Options injected via JS -->
+                </div>
+
+                <div class="flex justify-start">
+                    <button id="back-btn" onclick="prevQuestion()" class="hidden items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold transition-all px-4 py-2 rounded-xl hover:bg-white">
+                        <i class="fa-solid fa-arrow-left text-sm"></i>
+                        Previous
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3: Calculating -->
+        <section id="step-calculating" class="step-container text-center space-y-10">
+            <div class="relative w-32 h-32 mx-auto">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-200 h-32 w-32"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fa-solid fa-compass text-indigo-600 text-4xl floating"></i>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <h2 class="text-3xl font-black text-slate-900">Curating your future...</h2>
+                <div class="flex justify-center gap-1">
+                    <div class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                </div>
+                <p class="text-slate-400 font-medium italic pt-4">Matching your vibe with modern career markets</p>
+            </div>
+        </section>
+
+        <!-- Step 4: Result -->
+        <section id="step-result" class="step-container w-full">
+            <div class="bg-white/80 backdrop-blur-2xl rounded-[3rem] p-10 md:p-14 shadow-2xl border border-white text-center space-y-10 relative overflow-hidden">
+                <!-- Decorative colorful blobs -->
+                <div class="absolute -top-10 -right-10 w-40 h-40 bg-indigo-500/10 rounded-full blur-3xl"></div>
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-pink-500/10 rounded-full blur-3xl"></div>
+                
+                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3">
+                    <i id="result-icon" class="fa-solid fa-briefcase text-4xl"></i>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest">Your Match</div>
+                    <h2 id="result-title" class="text-4xl md:text-5xl font-black text-slate-900">Career Title</h2>
+                    <p id="result-desc" class="text-slate-500 text-lg md:text-xl font-medium max-w-sm mx-auto leading-relaxed">Career description goes here.</p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-6 pt-4">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-2">Market Demand</span>
+                        <span class="font-extrabold text-slate-800 text-lg">9.2% Growth</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest block mb-2">Salary Expect.</span>
+                        <span class="font-extrabold text-slate-800 text-lg">$85k - $120k</span>
+                    </div>
+                </div>
+
+                <div class="space-y-6 pt-6">
+                    <button class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
+                        Claim Your Roadmap
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                    <button onclick="location.reload()" class="w-full py-2 text-slate-400 font-bold hover:text-slate-600 transition-colors uppercase text-xs tracking-widest">
+                        Start Over
+                    </button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-16 px-6 bg-white border-t border-slate-100 mt-12">
+        <div class="max-w-4xl mx-auto text-center space-y-10">
+            <div class="space-y-4">
+                <p class="text-slate-400 font-black text-xs uppercase tracking-[0.2em]">Validated by Industry Leaders</p>
+                <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-40 grayscale font-black text-2xl tracking-tighter">
+                    <span>APPLE</span>
+                    <span>NIKE</span>
+                    <span>AIRBNB</span>
+                    <span>SPOTIFY</span>
+                </div>
+            </div>
+            <div class="pt-8 text-xs text-slate-400 font-bold flex flex-wrap justify-center gap-6">
+                <a href="#" class="hover:text-indigo-600 uppercase tracking-widest transition-colors">Privacy</a>
+                <a href="#" class="hover:text-indigo-600 uppercase tracking-widest transition-colors">Terms</a>
+                <a href="#" class="hover:text-indigo-600 uppercase tracking-widest transition-colors">Help</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        const questions = [
+            {
+                id: 'vibe',
+                question: "Which environment fuels your energy?",
+                subtitle: "Where do you lose track of time?",
+                options: [
+                    { id: 'creative', label: 'In a creative studio with zero limits', icon: 'fa-wand-magic-sparkles', color: 'text-pink-500', score: { design: 3, marketing: 2 } },
+                    { id: 'logic', label: 'Inside a complex problem or code base', icon: 'fa-terminal', color: 'text-indigo-500', score: { tech: 3, data: 2 } },
+                    { id: 'impact', label: 'Directly helping a community grow', icon: 'fa-hands-holding-heart', color: 'text-emerald-500', score: { health: 3, education: 2 } },
+                    { id: 'growth', label: 'High-stakes boardroom negotiations', icon: 'fa-chart-pie', color: 'text-amber-500', score: { business: 3, finance: 2 } }
+                ]
+            },
+            {
+                id: 'superpower',
+                question: "What's your hidden superpower?",
+                subtitle: "What feels like play to you, but work to others?",
+                options: [
+                    { id: 'organizing', label: 'Architecting chaos into systems', icon: 'fa-layer-group', color: 'text-blue-500', score: { business: 2, tech: 2, finance: 1 } },
+                    { id: 'empathy', label: 'Vibe-checking and reading people', icon: 'fa-comments', color: 'text-rose-500', score: { marketing: 2, health: 3, education: 3 } },
+                    { id: 'visualizing', label: 'Telling stories through visuals', icon: 'fa-palette', color: 'text-purple-500', score: { design: 3, marketing: 2 } },
+                    { id: 'solving', label: 'Cracking the "unsolvable" tech bugs', icon: 'fa-microchip', color: 'text-slate-700', score: { tech: 3, data: 3 } }
+                ]
+            },
+            {
+                id: 'lifestyle',
+                question: "Pick your ideal daily flow...",
+                subtitle: "How do you want to show up?",
+                options: [
+                    { id: 'remote', label: 'Nomadic freedom from a beach house', icon: 'fa-laptop-code', color: 'text-cyan-500', score: { tech: 2, design: 2, marketing: 1 } },
+                    { id: 'team', label: 'Collaborating in a high-energy hub', icon: 'fa-rocket', color: 'text-indigo-600', score: { business: 3, tech: 2 } },
+                    { id: 'active', label: 'Dynamic field-work and interactions', icon: 'fa-shoe-prints', color: 'text-orange-500', score: { health: 2, education: 2 } },
+                    { id: 'stable', label: 'Deep focus in a structured routine', icon: 'fa-building-columns', color: 'text-slate-800', score: { finance: 3, data: 2 } }
+                ]
+            }
+        ];
+
+        const paths = {
+            tech: { title: "Digital Architect", desc: "You're destined to build the infrastructure of the next internet generation.", icon: "fa-code", color: "bg-indigo-600" },
+            design: { title: "Experience Designer", desc: "You have the rare gift of making the world more beautiful and usable.", icon: "fa-palette", color: "bg-pink-600" },
+            business: { title: "Strategy Lead", desc: "You see opportunities where others see obstacles. A natural-born scaler.", icon: "fa-briefcase", color: "bg-purple-600" },
+            marketing: { title: "Growth Specialist", desc: "You master the art of attention and the science of human behavior.", icon: "fa-bolt", color: "bg-amber-500" },
+            data: { title: "Insight Scientist", desc: "You turn messy noise into clear, actionable signals that change industries.", icon: "fa-microchip", color: "bg-emerald-600" }
+        };
+
+        let currentStep = 0;
+        let answers = [];
+
+        function showStep(id) {
+            document.querySelectorAll('.step-container').forEach(step => step.classList.remove('active'));
+            document.getElementById(`step-${id}`).classList.add('active');
+            
+            if (id === 'quiz') {
+                document.getElementById('quiz-progress').classList.remove('hidden');
+            } else {
+                document.getElementById('quiz-progress').classList.add('hidden');
+            }
+        }
+
+        function startQuiz() {
+            currentStep = 0;
+            answers = [];
+            showStep('quiz');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentStep];
+            document.getElementById('question-title').innerText = q.question;
+            document.getElementById('question-subtitle').innerText = q.subtitle;
+            document.getElementById('progress-fill').style.width = `${((currentStep + 1) / questions.length) * 100}%`;
+            document.getElementById('progress-text').innerText = `${currentStep + 1}/${questions.length}`;
+            
+            const grid = document.getElementById('options-grid');
+            grid.innerHTML = '';
+            
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = "option-card flex items-center gap-5 p-6 bg-white border border-slate-100 rounded-3xl text-left group";
+                btn.style.animationDelay = `${idx * 0.1}s`;
+                btn.onclick = () => handleSelect(opt);
+                btn.innerHTML = `
+                    <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center ${opt.color} group-hover:bg-white transition-colors text-xl shadow-inner">
+                        <i class="fa-solid ${opt.icon}"></i>
+                    </div>
+                    <span class="text-lg font-bold text-slate-700 leading-tight">${opt.label}</span>
+                    <i class="fa-solid fa-arrow-right ml-auto w-5 opacity-0 group-hover:opacity-100 transition-all text-indigo-500"></i>
+                `;
+                grid.appendChild(btn);
+            });
+
+            document.getElementById('back-btn').style.display = currentStep > 0 ? 'flex' : 'none';
+        }
+
+        function handleSelect(option) {
+            answers[currentStep] = option;
+            if (currentStep < questions.length - 1) {
+                currentStep++;
+                renderQuestion();
+            } else {
+                processResults();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentStep > 0) {
+                currentStep--;
+                renderQuestion();
+            }
+        }
+
+        function processResults() {
+            showStep('calculating');
+            
+            setTimeout(() => {
+                const scores = { design: 0, tech: 0, business: 0, marketing: 0, health: 0, education: 0, finance: 0, data: 0 };
+                
+                answers.forEach(ans => {
+                    Object.keys(ans.score).forEach(key => {
+                        scores[key] += ans.score[key];
+                    });
+                });
+
+                const winnerKey = Object.entries(scores).sort((a, b) => b[1] - a[1])[0][0];
+                const result = paths[winnerKey] || paths['business'];
+
+                document.getElementById('result-title').innerText = result.title;
+                document.getElementById('result-desc').innerText = result.desc;
+                document.getElementById('result-icon').className = `fa-solid ${result.icon} text-4xl`;
+                document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 ${result.color}`;
+                
+                showStep('result');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
