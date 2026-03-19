@@ -106,12 +106,12 @@
 
     <!-- Navigation -->
     <nav class="fixed top-0 w-full h-16 bg-white/70 backdrop-blur-xl border-b border-white/20 z-50 flex items-center justify-between px-6">
-        <div class="flex items-center gap-2 font-black text-2xl tracking-tighter text-indigo-600 cursor-pointer" onclick="location.reload()">
+        <button class="flex items-center gap-2 font-black text-2xl tracking-tighter text-indigo-600 cursor-pointer" onclick="location.reload()">
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200">
                 <i class="fa-solid fa-rocket text-sm"></i>
             </div>
             <span>Viva Bleuprint</span>
-        </div>
+        </button>
         <div id="quiz-progress" class="hidden flex items-center gap-4">
             <div class="w-24 md:w-48 h-2.5 bg-slate-200/50 rounded-full overflow-hidden">
                 <div id="progress-fill" class="progress-bar-fill h-full" style="width: 0%"></div>
@@ -244,13 +244,6 @@
     <!-- Footer -->
     <footer class="py-12 px-6 border-t border-slate-200 bg-white">
         <div class="max-w-4xl mx-auto text-center space-y-6">
-            <!--<p class="text-slate-400 font-medium text-sm">TRUSTED BY STUDENTS AT</p>
-            <div class="flex flex-wrap justify-center gap-8 md:gap-16 opacity-30 grayscale font-bold text-xl">
-                <span>STANFORD</span>
-                <span>GOOGLE</span>
-                <span>MIT</span>
-                <span>META</span>
-            </div>-->
             <div class="pt-8 text-xs text-slate-400 space-x-4">
                 <a href="#" class="hover:text-indigo-600">Privacy Policy</a>
                 <span>•</span>
@@ -569,61 +562,6 @@
                 ]
             }
         ];
-        /*
-        const questions = [
-            {
-                id: 'vibe',
-                type: 'single',
-                question: "What best describes your current situation?",
-                subtitle: "Where do you lose track of time?",
-                options: [
-                    { id: 'tech', label: 'Inside a complex code base', icon: 'fa-terminal', color: 'text-indigo-500', score: { tech: 3, data: 2 } },
-                    { id: 'creative', label: 'In a creative studio with zero limits', icon: 'fa-wand-magic-sparkles', color: 'text-pink-500', score: { design: 3, marketing: 2 } },
-                    { id: 'impact', label: 'Directly helping a community grow', icon: 'fa-hands-holding-heart', color: 'text-emerald-500', score: { health: 3 } }
-                ]
-            },
-            {
-                id: 'analytical_scale',
-                type: 'scale',
-                question: "How much do you enjoy logical puzzles?",
-                subtitle: "Rating from 1 (Hate it) to 5 (Love it).",
-                score: { tech: 1, data: 1.5, finance: 1 } // Scores multiplied by rating
-            },
-            {
-                id: 'tech_specialty',
-                type: 'multi',
-                condition: (answers) => answers.vibe?.id === 'tech',
-                question: "What parts of tech excite you most?",
-                subtitle: "Select all that apply to refine your path.",
-                options: [
-                    { id: 'ai', label: 'Artificial Intelligence & ML', icon: 'fa-brain', color: 'text-purple-500', score: { data: 2, tech: 1 } },
-                    { id: 'ui', label: 'Visual UI & Frontend', icon: 'fa-desktop', color: 'text-blue-500', score: { design: 2, tech: 1 } },
-                    { id: 'security', label: 'Cybersecurity & Privacy', icon: 'fa-shield-halved', color: 'text-slate-700', score: { tech: 2 } }
-                ]
-            },
-            {
-                id: 'design_style',
-                type: 'single',
-                condition: (answers) => answers.vibe?.id === 'creative',
-                question: "How do you prefer to create?",
-                subtitle: "Every designer has a unique rhythm.",
-                options: [
-                    { id: 'visual', label: 'Purely visual and artistic', icon: 'fa-image', color: 'text-rose-500', score: { design: 3 } },
-                    { id: 'logical_design', label: 'Structure and user flows', icon: 'fa-sitemap', color: 'text-indigo-500', score: { design: 2, tech: 1 } }
-                ]
-            },
-            {
-                id: 'universal_goal',
-                type: 'multi',
-                question: "What are your top career priorities?",
-                subtitle: "Pick the factors that matter most right now.",
-                options: [
-                    { id: 'remote', label: 'Remote-first lifestyle', icon: 'fa-wifi', color: 'text-cyan-500', score: { tech: 1, design: 1 } },
-                    { id: 'salary', label: 'High earning potential', icon: 'fa-dollar-sign', color: 'text-emerald-600', score: { data: 1, business: 1 } },
-                    { id: 'purpose', label: 'Social impact & purpose', icon: 'fa-seedling', color: 'text-green-500', score: { health: 2, education: 2 } }
-                ]
-            }
-        ];*/
 
         const paths = {
             tech: { title: "Software Engineer", desc: "You're destined to build the infrastructure of the next internet generation.", icon: "fa-code", color: "bg-indigo-600" },
@@ -662,10 +600,8 @@
 
             document.getElementById('question-title').innerText = q.question;
             document.getElementById('question-subtitle').innerText = q.subtitle;
-            //document.getElementById('multi-badge').classList.toggle('hidden', q.type !== 'multi');
             
             const badge = document.getElementById('type-badge');
-            //badge.classList.toggle('hidden', q.type === 'scale');
             if(q.type === 'single'){
                 badge.innerText = 'Select One';
             }else if (q.type === 'multi'){
