@@ -213,6 +213,7 @@
                     <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
                     <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
                 </div>
+                <p class="text-slate-500 animate-pulse italic">Mapping your skills to 400+ career paths</p>
             </div>
         </section>
 
@@ -227,6 +228,18 @@
                     <h2 id="result-title" class="text-4xl md:text-5xl font-black text-slate-900">Career Title</h2>
                     <p id="result-desc" class="text-slate-500 text-lg font-medium max-w-sm mx-auto leading-relaxed"></p>
                 </div>
+
+                <div class="grid grid-cols-2 gap-6 pt-4">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-2">Market Demand</span>
+                        <span class="font-extrabold text-slate-800 text-lg">9.2% Growth</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest block mb-2">Salary Expect.</span>
+                        <span class="font-extrabold text-slate-800 text-lg">$85k - $120k</span>
+                    </div>
+                </div>
+
                 <div class="space-y-6 pt-6">
                     <button class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
                         Claim Your Roadmap
@@ -268,12 +281,12 @@
                 question: "What best describes your current situation?",
                 subtitle: "",
                 options: [
-                    { id: 'student', label: 'Student' },
-                    { id: 'grad', label: 'Recent graduate (0–2 years experience)' },
-                    { id: 'early_pro', label: 'Early career professional (3–7 years)' },
-                    { id: 'mid_pro', label: 'Mid-career professional (8–15 years)' },
-                    { id: 'senior_pro', label: 'Senior professional (15+ years)' },
-                    { id: 'unemployed', label: 'Currently unemployed' }
+                    { id: 'student', label: 'Student', score: { design: 3, marketing: 2 } },
+                    { id: 'grad', label: 'Recent graduate (0–2 years experience)', score: { tech: 3, data: 2 } },
+                    { id: 'early_pro', label: 'Early career professional (3–7 years)', score: { health: 3, education: 2 } },
+                    { id: 'mid_pro', label: 'Mid-career professional (8–15 years)', score: { business: 3, finance: 2 } },
+                    { id: 'senior_pro', label: 'Senior professional (15+ years)', score: { tech: 2, design: 3, marketing: 1 } },
+                    { id: 'unemployed', label: 'Currently unemployed', score: { tech: 2, design: 2, marketing: 1 } }
                 ]
             },
             {
@@ -282,13 +295,13 @@
                 question: "What is your highest level of education?",
                 subtitle: "",
                 options: [
-                    { id: 'high_school', label: 'High school' },
-                    { id: 'vocational', label: 'Vocational / technical training' },
-                    { id: 'bachelors', label: 'Bachelor’s degree' },
-                    { id: 'masters', label: 'Master’s degree' },
-                    { id: 'mba_pro', label: 'MBA / Professional degree' },
-                    { id: 'phd', label: 'Doctorate / PhD' },
-                    { id: 'other', label: 'Other' }
+                    { id: 'high_school', label: 'High school', score: { business: 2, tech: 2, finance: 1 } },
+                    { id: 'vocational', label: 'Vocational / technical training', score: { marketing: 2, health: 3, education: 3 } },
+                    { id: 'bachelors', label: 'Bachelor’s degree', score: { design: 3, marketing: 2 } },
+                    { id: 'masters', label: 'Master’s degree', score: { tech: 3, data: 3 } },
+                    { id: 'mba_pro', label: 'MBA / Professional degree', score: { tech: 2, design: 2, marketing: 1 } },
+                    { id: 'phd', label: 'Doctorate / PhD', score: { business: 3, tech: 2 } },
+                    { id: 'other', label: 'Other', score: { health: 2, education: 2 } }
                 ]
             },
             {
@@ -297,17 +310,17 @@
                 question: "Which sector do you currently work in?",
                 subtitle: "",
                 options: [
-                    { id: 'tech', label: 'Technology' },
-                    { id: 'finance', label: 'Business / Finance' },
-                    { id: 'marketing', label: 'Marketing / Communications' },
-                    { id: 'education', label: 'Education' },
-                    { id: 'healthcare', label: 'Healthcare' },
-                    { id: 'government', label: 'Government / Public sector' },
-                    { id: 'nonprofit', label: 'Nonprofit / Social impact' },
-                    { id: 'creative', label: 'Creative industries' },
-                    { id: 'unemployed', label: 'Unemployed at the moment' }
+                    { id: 'tech', label: 'Technology', score: { finance: 3, data: 2 } },
+                    { id: 'finance', label: 'Business / Finance', score: { design: 3, marketing: 2 } },
+                    { id: 'marketing', label: 'Marketing / Communications', score: { tech: 3, data: 2 } },
+                    { id: 'education', label: 'Education', score: { health: 3, education: 2 } },
+                    { id: 'healthcare', label: 'Healthcare', score: { business: 3, finance: 2 } },
+                    { id: 'government', label: 'Government / Public sector', score: { business: 2, tech: 2, finance: 1 } },
+                    { id: 'nonprofit', label: 'Nonprofit / Social impact', score: { marketing: 2, health: 3, education: 3 } },
+                    { id: 'creative', label: 'Creative industries', score: { design: 3, marketing: 2 } },
+                    { id: 'unemployed', label: 'Unemployed at the moment', score: { tech: 3, data: 3 } }
                 ]
-            },
+            }/*,
 
             // --- SECTION 2: CORE STRENGTHS & ACTIVITIES ---
             {
@@ -560,7 +573,7 @@
                     { id: '5_10h', label: '5–10 hours' },
                     { id: 'gt_10h', label: '10+ hours' }
                 ]
-            }
+            }*/
         ];
 
         const paths = {
@@ -751,8 +764,11 @@
                     }
                 });
 
-                const winner = Object.entries(totalScores).sort((a, b) => b[1] - a[1])[0]?.[0] || 'tech';
-                const result = paths[winner];
+                //const winner = Object.entries(totalScores).sort((a, b) => b[1] - a[1])[0]?.[0] || 'tech';
+                //const result = paths[winner];
+
+                const winnerKey = Object.entries(totalScores).sort((a, b) => b[1] - a[1])[0][0];
+                const result = paths[winnerKey] || paths['business'];
 
                 document.getElementById('result-title').innerText = result.title;
                 document.getElementById('result-desc').innerText = result.desc;
@@ -760,7 +776,7 @@
                 document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 ${result.color}`;
                 
                 showStep('result');
-            }, 2500);
+            }, 5000);
         }
     </script>
 </body>
