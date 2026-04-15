@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder | RIASEC Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background: #f8fafc;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .step-transition {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-button {
+            transition: all 0.2s ease;
+        }
+
+        .option-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .animate-pulse-soft {
+            animation: pulse-soft 2s infinite ease-in-out;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="bg-mesh"></div>
+
+    <!-- Navigation -->
+    <nav class="p-6">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-compass text-xl"></i>
+                </div>
+                <span class="text-xl font-bold text-slate-800 tracking-tight">PathFinder</span>
+            </div>
+            <div id="progress-container" class="hidden flex items-center space-x-4">
+                <div class="w-32 md:w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-indigo-600 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="progress-text" class="text-sm font-semibold text-slate-500">0%</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-12">
+        <!-- Start Screen -->
+        <div id="step-start" class="step-transition">
+            <div class="text-center space-y-8">
+                <div class="inline-block p-3 bg-indigo-100 text-indigo-600 rounded-2xl font-bold text-sm tracking-wide uppercase px-6">
+                    Professional Assessment
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 leading-tight">
+                    Your Career <span class="text-indigo-600">DNA.</span>
+                </h1>
+                <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    This survey uses the Holland Occupational Themes (RIASEC) to identify your core professional interests and match you with ideal work environments.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 pt-8">
+                    <button onclick="startSurvey()" class="px-10 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-1">
+                        Start Assessment <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <div class="flex items-center text-slate-500 font-medium">
+                        <i class="far fa-clock mr-2"></i> 18 Questions
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="step-question" class="hidden step-transition">
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-600"></div>
+                
+                <div class="mb-12">
+                    <p id="category-tag" class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-2 opacity-60">Interest Category</p>
+                    <h2 id="question-text" class="text-3xl md:text-4xl font-bold text-slate-800 leading-tight">
+                        Loading question...
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="handleAnswer(2)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-600 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">Strongly Interested</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="handleAnswer(1)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-500 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">Somewhat Interested</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="handleAnswer(0)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-slate-300 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">Neutral</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-300 group-hover:text-white transition-colors">
+                                <i class="fas fa-minus"></i>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="handleAnswer(-1)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-red-400 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">Not Interested</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-red-400 group-hover:text-white transition-colors">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="mt-8 flex justify-between items-center text-slate-400 font-medium">
+                    <button id="back-btn" onclick="goBack()" class="hover:text-indigo-600 transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Back
+                    </button>
+                    <span id="question-count">Question 1 of 18</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="step-loading" class="hidden step-transition text-center py-20">
+            <div class="relative inline-block">
+                <div class="w-32 h-32 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-dna text-4xl text-indigo-600 animate-pulse-soft"></i>
+                </div>
+            </div>
+            <h2 class="mt-10 text-3xl font-bold text-slate-800">Calculating RIASEC Profile...</h2>
+            <p class="text-slate-500 mt-4">Cross-referencing interests with industry benchmarks.</p>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="step-result" class="hidden step-transition">
+            <div class="text-center mb-12">
+                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 mb-6">
+                    <i id="result-icon" class="fa-solid fa-flask text-4xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-indigo-600 uppercase tracking-widest mb-2">Dominant Archetype</h3>
+                <h1 id="result-title" class="text-5xl font-extrabold text-slate-900 mb-6">Investigative</h1>
+                <p id="result-desc" class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    Description goes here...
+                </p>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-12 shadow-xl mb-8">
+                <h4 class="text-2xl font-bold text-slate-800 mb-8 flex items-center">
+                    <i class="fas fa-chart-pie mr-3 text-indigo-600"></i> Interest Distribution
+                </h4>
+                <div class="max-w-md mx-auto aspect-square">
+                    <canvas id="riasecChart"></canvas>
+                </div>
+            </div>
+
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-12 shadow-xl mb-8">
+                <h4 class="text-2xl font-bold text-slate-800 mb-8 flex items-center">
+                    <i class="fas fa-compass mr-3 text-indigo-600"></i> Career Ecosystems
+                </h4>
+                <div id="job-suggestions" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic jobs -->
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="location.reload()" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all">
+                    Retake Assessment
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const riasecQuestions = [
+            { text: "Working with your hands, tools, machines, or animals.", type: "R", cat: "Realistic" },
+            { text: "Fixing mechanical objects or operating heavy equipment.", type: "R", cat: "Realistic" },
+            { text: "Engaging in outdoor activities like construction, farming, or landscaping.", type: "R", cat: "Realistic" },
+            { text: "Solving complex scientific or mathematical problems.", type: "I", cat: "Investigative" },
+            { text: "Conducting research, studying theories, or analyzing data.", type: "I", cat: "Investigative" },
+            { text: "Working independently to figure out how things work.", type: "I", cat: "Investigative" },
+            { text: "Expressing ideas through art, music, writing, or design.", type: "A", cat: "Artistic" },
+            { text: "Working in unstructured environments where you can use your imagination.", type: "A", cat: "Artistic" },
+            { text: "Creating original work that challenges the status quo.", type: "A", cat: "Artistic" },
+            { text: "Teaching, counseling, or providing healthcare to others.", type: "S", cat: "Social" },
+            { text: "Working in teams to solve social problems or help people.", type: "S", cat: "Social" },
+            { text: "Communicating ideas to help others grow or heal.", type: "S", cat: "Social" },
+            { text: "Leading teams, managing projects, or starting a business.", type: "E", cat: "Enterprising" },
+            { text: "Persuading people to follow a vision or buy a product.", type: "E", cat: "Enterprising" },
+            { text: "Taking risks to achieve financial or organizational goals.", type: "E", cat: "Enterprising" },
+            { text: "Organizing data, maintaining records, and ensuring accuracy.", type: "C", cat: "Conventional" },
+            { text: "Working with numbers and clear sets of rules or procedures.", type: "C", cat: "Conventional" },
+            { text: "Structuring environments to maximize efficiency and order.", type: "C", cat: "Conventional" }
+        ];
+
+        const riasecResults = {
+            "R": { title: "Realistic (The Doers)", icon: "fa-hammer", color: "rgba(234, 88, 12, 0.8)", borderColor: "rgb(234, 88, 12)", bgClass: "bg-orange-600", desc: "You prefer physical activities and working with objects, tools, machines, or animals. You value practical, hands-on solutions and often enjoy working outdoors.", jobs: ["Mechanical Engineer", "Skilled Trades", "Civil Engineer", "Agriculture Specialist", "Architectural Drafter"] },
+            "I": { title: "Investigative (The Thinkers)", icon: "fa-microscope", color: "rgba(37, 99, 235, 0.8)", borderColor: "rgb(37, 99, 235)", bgClass: "bg-blue-600", desc: "You enjoy activities that involve the study and analysis of data, objects, and concepts. You value knowledge and tend to be observant, curious, and analytical.", jobs: ["Data Scientist", "Biologist", "Software Developer", "Medical Researcher", "Systems Analyst"] },
+            "A": { title: "Artistic (The Creators)", icon: "fa-palette", color: "rgba(219, 39, 119, 0.8)", borderColor: "rgb(219, 39, 119)", bgClass: "bg-pink-500", desc: "You value self-expression and creativity. You prefer working in unstructured settings where you can use your imagination and intuition.", jobs: ["Graphic Designer", "Creative Director", "Writer", "Architect", "UX/UI Designer"] },
+            "S": { title: "Social (The Helpers)", icon: "fa-people-group", color: "rgba(16, 185, 129, 0.8)", borderColor: "rgb(16, 185, 129)", bgClass: "bg-emerald-500", desc: "You are driven by a desire to help, teach, and heal others. You value social service and prefer environments that involve teamwork and empathy.", jobs: ["Teacher", "Healthcare Professional", "Counselor", "Human Resources", "Non-profit Manager"] },
+            "E": { title: "Enterprising (The Persuaders)", icon: "fa-chart-line", color: "rgba(79, 70, 229, 0.8)", borderColor: "rgb(79, 70, 229)", bgClass: "bg-indigo-600", desc: "You enjoy leading, influencing, and persuading people. You are often drawn to business or leadership roles where you can take risks.", jobs: ["Entrepreneur", "Marketing Manager", "Attorney", "Sales Director", "Project Manager"] },
+            "C": { title: "Conventional (The Organizers)", icon: "fa-table", color: "rgba(51, 65, 85, 0.8)", borderColor: "rgb(51, 65, 85)", bgClass: "bg-slate-700", desc: "You value order, accuracy, and structure. You enjoy working with data, numbers, and clear procedures. You are known for being detail-oriented.", jobs: ["Financial Analyst", "Accountant", "Data Administrator", "Quality Control", "Compliance Officer"] }
+        };
+
+        let currentQuestionIndex = 0;
+        let scores = { "R": 0, "I": 0, "A": 0, "S": 0, "E": 0, "C": 0 };
+        let history = [];
+        let chartInstance = null;
+
+        function showStep(stepId) {
+            document.querySelectorAll('.step-transition').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`step-${stepId}`).classList.remove('hidden');
+            if (stepId === 'question') document.getElementById('progress-container').classList.remove('hidden');
+            else document.getElementById('progress-container').classList.add('hidden');
+        }
+
+        function startSurvey() {
+            currentQuestionIndex = 0;
+            scores = { "R": 0, "I": 0, "A": 0, "S": 0, "E": 0, "C": 0 };
+            history = [];
+            updateQuestion();
+            showStep('question');
+        }
+
+        function updateQuestion() {
+            const q = riasecQuestions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = q.text;
+            document.getElementById('category-tag').innerText = q.cat;
+            document.getElementById('question-count').innerText = `Step ${currentQuestionIndex + 1} of ${riasecQuestions.length}`;
+            const progress = ((currentQuestionIndex) / riasecQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').innerText = `${Math.round(progress)}%`;
+            document.getElementById('back-btn').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+        }
+
+        function handleAnswer(value) {
+            const q = riasecQuestions[currentQuestionIndex];
+            scores[q.type] += value;
+            history.push(value);
+            if (currentQuestionIndex < riasecQuestions.length - 1) {
+                currentQuestionIndex++;
+                updateQuestion();
+            } else {
+                finishSurvey();
+            }
+        }
+
+        function goBack() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                const lastVal = history.pop();
+                const q = riasecQuestions[currentQuestionIndex];
+                scores[q.type] -= lastVal;
+                updateQuestion();
+            }
+        }
+
+        function finishSurvey() {
+            document.getElementById('progress-bar').style.width = `100%`;
+            document.getElementById('progress-text').innerText = `100%`;
+            showStep('loading');
+            setTimeout(calculateResults, 2000);
+        }
+
+        function calculateResults() {
+            let maxType = "R";
+            let maxScore = -Infinity;
+            for (const type in scores) {
+                if (scores[type] > maxScore) {
+                    maxScore = scores[type];
+                    maxType = type;
+                }
+            }
+
+            const result = riasecResults[maxType];
+            document.getElementById('result-title').innerText = result.title;
+            document.getElementById('result-desc').innerText = result.desc;
+            document.getElementById('result-icon').className = `fa-solid ${result.icon} text-4xl`;
+            document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 mb-6 ${result.bgClass}`;
+            
+            const jobContainer = document.getElementById('job-suggestions');
+            jobContainer.innerHTML = '';
+            result.jobs.forEach(job => {
+                const div = document.createElement('div');
+                div.className = "flex items-center p-4 rounded-xl bg-white border border-slate-100 shadow-sm hover:shadow-md transition-all";
+                div.innerHTML = `
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-4 ${result.bgClass} text-white opacity-90">
+                        <i class="fas fa-briefcase text-xs"></i>
+                    </div>
+                    <span class="font-bold text-slate-700">${job}</span>
+                `;
+                jobContainer.appendChild(div);
+            });
+
+            renderChart();
+            showStep('result');
+        }
+
+        function renderChart() {
+            const ctx = document.getElementById('riasecChart').getContext('2d');
+            const dataLabels = ['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional'];
+            const dataValues = [scores.R, scores.I, scores.A, scores.S, scores.E, scores.C];
+
+            // Normalize scores for better visual if they are all low or negative
+            const minScore = Math.min(...dataValues);
+            const offsetValues = dataValues.map(v => v + Math.abs(minScore) + 2);
+
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: dataLabels,
+                    datasets: [{
+                        label: 'Interest Score',
+                        data: offsetValues,
+                        fill: true,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: 'rgb(79, 70, 229)',
+                        pointBackgroundColor: 'rgb(79, 70, 229)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(79, 70, 229)'
+                    }]
+                },
+                options: {
+                    elements: {
+                        line: { borderWidth: 3 }
+                    },
+                    scales: {
+                        r: {
+                            angleLines: { display: true },
+                            suggestedMin: 0,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

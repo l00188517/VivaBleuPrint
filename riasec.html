@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder | RIASEC Discovery</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background: #f8fafc;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .step-transition {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-button {
+            transition: all 0.2s ease;
+        }
+
+        .option-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .animate-pulse-soft {
+            animation: pulse-soft 2s infinite ease-in-out;
+        }
+
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="bg-mesh"></div>
+
+    <!-- Navigation -->
+    <nav class="p-6">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-compass text-xl"></i>
+                </div>
+                <span class="text-xl font-bold text-slate-800 tracking-tight">PathFinder</span>
+            </div>
+            <div id="progress-container" class="hidden flex items-center space-x-4">
+                <div class="w-32 md:w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-indigo-600 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="progress-text" class="text-sm font-semibold text-slate-500">0%</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-12">
+        <!-- Start Screen -->
+        <div id="step-start" class="step-transition">
+            <div class="text-center space-y-8">
+                <div class="inline-block p-3 bg-indigo-100 text-indigo-600 rounded-2xl font-bold text-sm tracking-wide uppercase px-6">
+                    Career Psychology
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 leading-tight">
+                    Discover your <span class="text-indigo-600">Perfect Match.</span>
+                </h1>
+                <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    Based on the RIASEC Holland Codes model, this quick survey helps you understand your interests and points you toward a fulfilling career path.
+                </p>
+                <div class="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6 pt-8">
+                    <button onclick="startSurvey()" class="px-10 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-1">
+                        Start Discovery <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <div class="flex items-center text-slate-500 font-medium">
+                        <i class="far fa-clock mr-2"></i> Takes ~3 minutes
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 pt-16 opacity-60">
+                    <div class="flex items-center space-x-2 justify-center">
+                        <i class="fas fa-flask text-indigo-400"></i>
+                        <span class="text-xs font-bold uppercase tracking-widest">Investigative</span>
+                    </div>
+                    <div class="flex items-center space-x-2 justify-center">
+                        <i class="fas fa-palette text-pink-400"></i>
+                        <span class="text-xs font-bold uppercase tracking-widest">Artistic</span>
+                    </div>
+                    <div class="flex items-center space-x-2 justify-center">
+                        <i class="fas fa-users text-blue-400"></i>
+                        <span class="text-xs font-bold uppercase tracking-widest">Social</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Question Screen -->
+        <div id="step-question" class="hidden step-transition">
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-600"></div>
+                
+                <div class="mb-12">
+                    <h2 id="question-text" class="text-3xl md:text-4xl font-bold text-slate-800 leading-tight">
+                        How much do you enjoy solving complex math problems?
+                    </h2>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4">
+                    <button onclick="handleAnswer(2)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-600 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">I would love this</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="handleAnswer(1)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-500 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">I would like this</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-indigo-500 group-hover:text-white transition-colors">
+                                <i class="fas fa-check"></i>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="handleAnswer(0)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-slate-300 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">I am neutral / indifferent</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-slate-300 group-hover:text-white transition-colors">
+                                <i class="fas fa-minus"></i>
+                            </div>
+                        </div>
+                    </button>
+                    <button onclick="handleAnswer(-1)" class="option-button w-full p-6 text-left rounded-2xl border-2 border-slate-100 bg-white hover:border-red-400 group">
+                        <div class="flex justify-between items-center">
+                            <span class="text-xl font-bold text-slate-700">I would dislike this</span>
+                            <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 group-hover:bg-red-400 group-hover:text-white transition-colors">
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+                    </button>
+                </div>
+
+                <div class="mt-8 flex justify-between items-center text-slate-400 font-medium">
+                    <button id="back-btn" onclick="goBack()" class="hover:text-indigo-600 transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Previous
+                    </button>
+                    <span id="question-count">Question 1 of 12</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Screen -->
+        <div id="step-loading" class="hidden step-transition text-center py-20">
+            <div class="relative inline-block">
+                <div class="w-32 h-32 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fas fa-brain text-4xl text-indigo-600 animate-pulse-soft"></i>
+                </div>
+            </div>
+            <h2 class="mt-10 text-3xl font-bold text-slate-800">Analyzing your profile...</h2>
+            <p class="text-slate-500 mt-4">Mapping your interests to the RIASEC model.</p>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="step-result" class="hidden step-transition">
+            <div class="text-center mb-12">
+                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 mb-6">
+                    <i id="result-icon" class="fa-solid fa-flask text-4xl"></i>
+                </div>
+                <h3 class="text-lg font-bold text-indigo-600 uppercase tracking-widest mb-2">Your Primary Type is</h3>
+                <h1 id="result-title" class="text-5xl font-extrabold text-slate-900 mb-6">Investigative</h1>
+                <p id="result-desc" class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    You are a "Thinker." You enjoy activities that involve the study and analysis of data, objects, and concepts. You value knowledge and tend to be observant, curious, and analytical.
+                </p>
+            </div>
+
+            <div class="glass-card rounded-[2.5rem] p-8 md:p-12 shadow-xl mb-8">
+                <h4 class="text-2xl font-bold text-slate-800 mb-8 flex items-center">
+                    <i class="fas fa-briefcase mr-3 text-indigo-600"></i> Recommended Career Paths
+                </h4>
+                <div id="job-suggestions" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Dynamic jobs here -->
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button onclick="location.reload()" class="text-indigo-600 font-bold hover:underline">
+                    Take the survey again
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Survey Data - 2 questions per RIASEC category
+        const riasecQuestions = [
+            // Realistic
+            { text: "Building or repairing mechanical equipment and machinery.", type: "R" },
+            { text: "Working outdoors, such as in construction or agriculture.", type: "R" },
+            // Investigative
+            { text: "Solving complex math problems or scientific puzzles.", type: "I" },
+            { text: "Conducting research or studying theory in a laboratory.", type: "I" },
+            // Artistic
+            { text: "Creating original art, writing, or composing music.", type: "A" },
+            { text: "Designing clothes, interiors, or digital media.", type: "A" },
+            // Social
+            { text: "Teaching others or providing counseling and guidance.", type: "S" },
+            { text: "Working in teams to help people solve personal problems.", type: "S" },
+            // Enterprising
+            { text: "Leading a team to achieve a high-stakes business goal.", type: "E" },
+            { text: "Persuading others to buy a product or invest in an idea.", type: "E" },
+            // Conventional
+            { text: "Organizing complex data systems or maintaining records.", type: "C" },
+            { text: "Developing structured processes to ensure accuracy.", type: "C" }
+        ];
+
+        const riasecResults = {
+            "R": {
+                title: "Realistic",
+                icon: "fa-tools",
+                color: "bg-orange-500",
+                desc: "You are a 'Doer.' You prefer working with objects, tools, machines, plants, or animals. You often like to work outdoors and value practical things you can see and touch.",
+                jobs: ["Mechanical Engineer", "Construction Manager", "Forest Ranger", "Electrician", "Pilot"]
+            },
+            "I": {
+                title: "Investigative",
+                icon: "fa-microscope",
+                color: "bg-blue-600",
+                desc: "You are a 'Thinker.' You enjoy activities that involve the study and analysis of data, objects, and concepts. You value knowledge and tend to be observant, curious, and analytical.",
+                jobs: ["Data Scientist", "Biologist", "Medical Researcher", "Systems Analyst", "Psychologist"]
+            },
+            "A": {
+                title: "Artistic",
+                icon: "fa-palette",
+                color: "bg-pink-500",
+                desc: "You are a 'Creator.' You enjoy tasks that involve self-expression, artistic creation, and working in unstructured settings. You value intuition, imagination, and novelty.",
+                jobs: ["Graphic Designer", "Architect", "Author", "Art Director", "Fashion Designer"]
+            },
+            "S": {
+                title: "Social",
+                icon: "fa-hands-holding-child",
+                color: "bg-emerald-500",
+                desc: "You are a 'Helper.' You prefer activities that involve training, healing, or helping others. You value social service and are usually empathetic and communication-oriented.",
+                jobs: ["Teacher", "Counselor", "Nurse", "Human Resources Manager", "Social Worker"]
+            },
+            "E": {
+                title: "Enterprising",
+                icon: "fa-chart-line",
+                color: "bg-indigo-600",
+                desc: "You are a 'Persuader.' You like to lead and influence people. You enjoy tasks related to business, politics, and leadership, where you can drive results.",
+                jobs: ["Entrepreneur", "Sales Manager", "Lawyer", "Marketing Director", "Public Relations Specialist"]
+            },
+            "C": {
+                title: "Conventional",
+                icon: "fa-folder-tree",
+                color: "bg-slate-700",
+                desc: "You are an 'Organizer.' You like to work with data and numbers, following orderly routines and clear standards. You value precision, efficiency, and structure.",
+                jobs: ["Accountant", "Financial Analyst", "Project Coordinator", "Database Administrator", "Auditor"]
+            }
+        };
+
+        let currentQuestionIndex = 0;
+        let scores = { "R": 0, "I": 0, "A": 0, "S": 0, "E": 0, "C": 0 };
+        let history = [];
+
+        function showStep(stepId) {
+            document.querySelectorAll('.step-transition').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`step-${stepId}`).classList.remove('hidden');
+            
+            if (stepId === 'question') {
+                document.getElementById('progress-container').classList.remove('hidden');
+            } else if (stepId === 'start' || stepId === 'result' || stepId === 'loading') {
+                document.getElementById('progress-container').classList.add('hidden');
+            }
+        }
+
+        function startSurvey() {
+            currentQuestionIndex = 0;
+            scores = { "R": 0, "I": 0, "A": 0, "S": 0, "E": 0, "C": 0 };
+            history = [];
+            updateQuestion();
+            showStep('question');
+        }
+
+        function updateQuestion() {
+            const q = riasecQuestions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = q.text;
+            document.getElementById('question-count').innerText = `Question ${currentQuestionIndex + 1} of ${riasecQuestions.length}`;
+            
+            const progress = ((currentQuestionIndex) / riasecQuestions.length) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').innerText = `${Math.round(progress)}%`;
+
+            document.getElementById('back-btn').style.visibility = currentQuestionIndex === 0 ? 'hidden' : 'visible';
+        }
+
+        function handleAnswer(value) {
+            const q = riasecQuestions[currentQuestionIndex];
+            scores[q.type] += value;
+            history.push(value);
+
+            if (currentQuestionIndex < riasecQuestions.length - 1) {
+                currentQuestionIndex++;
+                updateQuestion();
+            } else {
+                finishSurvey();
+            }
+        }
+
+        function goBack() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                const lastVal = history.pop();
+                const q = riasecQuestions[currentQuestionIndex];
+                scores[q.type] -= lastVal;
+                updateQuestion();
+            }
+        }
+
+        function finishSurvey() {
+            // Update final progress text
+            document.getElementById('progress-bar').style.width = `100%`;
+            document.getElementById('progress-text').innerText = `100%`;
+
+            showStep('loading');
+
+            // Simulate analysis time
+            setTimeout(() => {
+                calculateResults();
+            }, 2500);
+        }
+
+        function calculateResults() {
+            // Find the highest score
+            let maxType = "R";
+            let maxScore = -Infinity;
+
+            for (const type in scores) {
+                if (scores[type] > maxScore) {
+                    maxScore = scores[type];
+                    maxType = type;
+                }
+            }
+
+            const result = riasecResults[maxType];
+
+            // Update UI
+            document.getElementById('result-title').innerText = result.title;
+            document.getElementById('result-desc').innerText = result.desc;
+            document.getElementById('result-icon').className = `fa-solid ${result.icon} text-4xl`;
+            document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 mb-6 ${result.color}`;
+            
+            // Render job suggestions
+            const jobContainer = document.getElementById('job-suggestions');
+            jobContainer.innerHTML = '';
+            result.jobs.forEach(job => {
+                const div = document.createElement('div');
+                div.className = "flex items-center p-4 rounded-xl bg-slate-50 border border-slate-100 hover:bg-white hover:shadow-md transition-all";
+                div.innerHTML = `
+                    <div class="w-10 h-10 rounded-lg flex items-center justify-center mr-4 ${result.color} text-white opacity-80">
+                        <i class="fas fa-check text-xs"></i>
+                    </div>
+                    <span class="font-bold text-slate-700">${job}</span>
+                `;
+                jobContainer.appendChild(div);
+            });
+
+            showStep('result');
+        }
+    </script>
+</body>
+</html>
