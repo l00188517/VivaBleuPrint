@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder | RIASEC Discovery</title>
+    <!-- External Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background: #f8fafc;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(16, 185, 129, 0.1) 0px, transparent 50%);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 2.5rem;
+        }
+
+        .step-transition {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-button {
+            transition: all 0.2s ease;
+        }
+
+        .option-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+
+        .animate-pulse-soft {
+            animation: pulse-soft 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <div class="bg-mesh"></div>
+
+    <nav class="p-6">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg">
+                    <i class="fas fa-compass text-xl"></i>
+                </div>
+                <span class="text-xl font-bold text-slate-800 tracking-tight">PathFinder</span>
+            </div>
+            <div id="progress-container" class="hidden flex items-center space-x-4">
+                <div class="w-32 md:w-64 h-2 bg-slate-200 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="h-full bg-indigo-600 transition-all duration-500" style="width: 0%"></div>
+                </div>
+                <span id="progress-text" class="text-sm font-semibold text-slate-500">0%</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-4xl mx-auto px-6 py-12">
+        <!-- Landing Screen -->
+        <div id="step-start" class="step-transition">
+            <div class="text-center space-y-8">
+                <div class="inline-block p-3 bg-indigo-100 text-indigo-600 rounded-2xl font-bold text-sm tracking-wide uppercase px-6">
+                    Comprehensive RIASEC Survey
+                </div>
+                <h1 class="text-5xl md:text-7xl font-extrabold text-slate-900 leading-tight">
+                    Map your <span class="text-indigo-600">Future.</span>
+                </h1>
+                <p class="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
+                    Discovery begins with understanding. Follow this assessment to find your professional match based on the Holland Occupational Themes.
+                </p>
+                <button onclick="startSurvey()" class="px-10 py-5 bg-indigo-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all hover:-translate-y-1">
+                    Start Assessment <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Part 1: Context -->
+        <div id="step-part1" class="hidden step-transition">
+            <div class="glass-card p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-600"></div>
+                <div class="mb-12">
+                    <p class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-2 opacity-60">Part 1: Background</p>
+                    <h2 id="part1-question" class="text-3xl md:text-4xl font-bold text-slate-800">Loading...</h2>
+                </div>
+                <div id="part1-options" class="grid grid-cols-1 gap-3"></div>
+                <div class="mt-8 flex justify-between items-center">
+                    <button id="p1-back-btn" onclick="prevPart1()" class="text-slate-400 font-bold hover:text-indigo-600">Back</button>
+                    <button id="p1-next-btn" onclick="nextPart1()" class="px-8 py-3 bg-indigo-600 text-white rounded-xl font-bold shadow-lg hover:bg-indigo-700">Continue</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 2: Ratings -->
+        <div id="step-part2" class="hidden step-transition">
+            <div class="glass-card p-8 md:p-12 shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 left-0 w-2 h-full bg-indigo-600"></div>
+                <div class="mb-12">
+                    <p class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-2 opacity-60">Part 2: Interests</p>
+                    <h2 id="question-text" class="text-3xl md:text-4xl font-bold text-slate-800">Loading...</h2>
+                </div>
+                <div class="grid grid-cols-5 gap-2 md:gap-4 mb-8">
+                    <button onclick="handlePart2Answer(1)" class="option-button p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-red-400 font-bold">1</button>
+                    <button onclick="handlePart2Answer(2)" class="option-button p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-orange-400 font-bold">2</button>
+                    <button onclick="handlePart2Answer(3)" class="option-button p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-slate-300 font-bold">3</button>
+                    <button onclick="handlePart2Answer(4)" class="option-button p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-emerald-400 font-bold">4</button>
+                    <button onclick="handlePart2Answer(5)" class="option-button p-4 rounded-2xl border-2 border-slate-100 bg-white hover:border-indigo-600 font-bold">5</button>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 font-medium">
+                    <button onclick="prevPart2()" class="hover:text-indigo-600">Back</button>
+                    <span id="question-count">1 of 18</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Loading -->
+        <div id="step-loading" class="hidden step-transition text-center py-20">
+            <div class="w-32 h-32 border-4 border-slate-100 border-t-indigo-600 rounded-full animate-spin mx-auto"></div>
+            <h2 class="mt-10 text-3xl font-bold text-slate-800">Calculating Career DNA...</h2>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="step-result" class="hidden step-transition">
+            <div class="text-center mb-12">
+                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl mb-6">
+                    <i id="result-icon" class="fa-solid fa-flask text-4xl"></i>
+                </div>
+                <h1 id="result-title" class="text-5xl font-extrabold text-slate-900 mb-2">Investigative</h1>
+                <div id="holland-code-badge" class="inline-flex items-center space-x-2 bg-indigo-50 px-4 py-2 rounded-full border border-indigo-100 mb-6">
+                    <span class="text-xs font-bold uppercase tracking-widest text-indigo-400">Your Holland Code:</span>
+                    <span id="top-3-letters" class="text-lg font-black text-indigo-600 tracking-tighter italic">I-R-S</span>
+                </div>
+                <p id="result-desc" class="text-xl text-slate-600 max-w-2xl mx-auto"></p>
+            </div>
+            <div class="glass-card p-8 md:p-12 shadow-xl mb-8">
+                <canvas id="riasecChart"></canvas>
+            </div>
+            <div class="mb-6">
+                <h3 class="text-xl font-bold text-slate-800 mb-4 px-2">Top Career Recommendations</h3>
+                <div id="job-suggestions" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8"></div>
+            </div>
+            <div class="text-center">
+                <button onclick="location.reload()" class="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-black transition-colors">Retake Survey</button>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        const p1Data = [
+            { id: "sit", question: "Current situation?", options: ["Student", "Professional", "Career Break"] },
+            { id: "edu", question: "Education level?", options: ["Secondary", "Bachelor", "Master", "PhD"] },
+            { id: "int", question: "Key Interests?", options: ["Tech", "Health", "Art", "Business", "Science"], multiple: true }
+        ];
+
+        const p2Questions = [
+            { text: "Install drywall or flooring in a new house.", type: "R" },
+            { text: "Repair damaged mechanical equipment.", type: "R" },
+            { text: "Operate heavy machinery.", type: "R" },
+            { text: "Analyze data using statistics.", type: "I" },
+            { text: "Research scientific phenomena.", type: "I" },
+            { text: "Investigate climate change.", type: "I" },
+            { text: "Create original art for a gallery.", type: "A" },
+            { text: "Write a play or script.", type: "A" },
+            { text: "Perform in a musical.", type: "A" },
+            { text: "Counsel individuals.", type: "S" },
+            { text: "Teach children.", type: "S" },
+            { text: "Find support for families.", type: "S" },
+            { text: "Advise on financial goals.", type: "E" },
+            { text: "Oversee hiring or management.", type: "E" },
+            { text: "Sell a house or marketing material.", type: "E" },
+            { text: "Keep detailed records of payments.", type: "C" },
+            { text: "Verify quality of parts.", type: "C" },
+            { text: "Sort mail in a post office.", type: "C" }
+        ];
+
+        const profiles = {
+            "R": { title: "Realistic (The Doers)", icon: "fa-hammer", color: "bg-orange-600", desc: "You prefer hands-on work and practical solutions.", jobs: ["Civil Engineer", "Mechanical Technician", "Construction Manager", "Forest Ranger"] },
+            "I": { title: "Investigative (The Thinkers)", icon: "fa-microscope", color: "bg-blue-600", desc: "You are analytical and naturally curious about how things work.", jobs: ["Data Scientist", "Biologist", "Medical Researcher", "Systems Analyst"] },
+            "A": { title: "Artistic (The Creators)", icon: "fa-palette", color: "bg-pink-500", desc: "You value self-expression, creativity, and unconventional ideas.", jobs: ["Graphic Designer", "Architect", "Creative Director", "UX Designer"] },
+            "S": { title: "Social (The Helpers)", icon: "fa-people-group", color: "bg-emerald-500", desc: "You are driven by helping, teaching, and supporting others.", jobs: ["Clinical Psychologist", "Social Worker", "Human Resources", "Teacher"] },
+            "E": { title: "Enterprising (The Persuaders)", icon: "fa-chart-line", color: "bg-indigo-600", desc: "You enjoy leadership, persuasive communication, and business goals.", jobs: ["Entrepreneur", "Sales Director", "Marketing Manager", "Financial Advisor"] },
+            "C": { title: "Conventional (The Organizers)", icon: "fa-table", color: "bg-slate-700", desc: "You value order, accuracy, structured tasks, and data management.", jobs: ["Accountant", "Data Entry Specialist", "Financial Auditor", "Office Manager"] }
+        };
+
+        let p1Idx = 0, p2Idx = 0, p1Ans = {}, p2Ans = [];
+        let radarChart = null;
+
+        function showStep(s) {
+            document.querySelectorAll('.step-transition').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`step-${s}`).classList.remove('hidden');
+            document.getElementById('progress-container').classList.toggle('hidden', ['start', 'loading', 'result'].includes(s));
+        }
+
+        function startSurvey() {
+            p1Idx = 0; p2Idx = 0; p1Ans = {}; p2Ans = [];
+            updateP1();
+            showStep('part1');
+        }
+
+        function updateP1() {
+            const d = p1Data[p1Idx];
+            document.getElementById('part1-question').innerText = d.question;
+            const container = document.getElementById('part1-options');
+            container.innerHTML = '';
+            d.options.forEach(o => {
+                const b = document.createElement('button');
+                b.className = `option-button w-full p-4 border-2 rounded-xl text-left ${p1Ans[d.id]?.includes(o) ? 'border-indigo-600 bg-indigo-50 font-bold' : 'border-slate-100'}`;
+                b.innerText = o;
+                b.onclick = () => {
+                    if (d.multiple) {
+                        p1Ans[d.id] = p1Ans[d.id] || [];
+                        const i = p1Ans[d.id].indexOf(o);
+                        if (i > -1) p1Ans[d.id].splice(i, 1); else p1Ans[d.id].push(o);
+                    } else { p1Ans[d.id] = [o]; }
+                    updateP1();
+                };
+                container.appendChild(b);
+            });
+            document.getElementById('p1-back-btn').style.visibility = p1Idx === 0 ? 'hidden' : 'visible';
+            updateProgress();
+        }
+
+        function nextPart1() {
+            if (!p1Ans[p1Data[p1Idx].id]) return;
+            if (p1Idx < p1Data.length - 1) { p1Idx++; updateP1(); } else { showStep('part2'); updateP2(); }
+        }
+
+        function prevPart1() { p1Idx--; updateP1(); }
+
+        function updateP2() {
+            document.getElementById('question-text').innerText = p2Questions[p2Idx].text;
+            document.getElementById('question-count').innerText = `${p2Idx + 1} of 18`;
+            updateProgress();
+        }
+
+        function handlePart2Answer(v) {
+            p2Ans[p2Idx] = v;
+            if (p2Idx < 17) { p2Idx++; updateP2(); } else { finish(); }
+        }
+
+        function prevPart2() {
+            if (p2Idx > 0) { p2Idx--; updateP2(); } else { showStep('part1'); }
+        }
+
+        function updateProgress() {
+            const current = p1Idx + (document.getElementById('step-part2').classList.contains('hidden') ? 0 : (p2Idx + 3));
+            const progress = (current / 21) * 100;
+            document.getElementById('progress-bar').style.width = `${progress}%`;
+            document.getElementById('progress-text').innerText = `${Math.round(progress)}%`;
+        }
+
+        function finish() {
+            showStep('loading');
+            const scores = { R:0, I:0, A:0, S:0, E:0, C:0 };
+            p2Questions.forEach((q, i) => {
+                if(p2Ans[i]) scores[q.type] += p2Ans[i];
+            });
+            
+            setTimeout(() => {
+                // Determine Top 3
+                const sortedLetters = Object.keys(scores).sort((a, b) => scores[b] - scores[a]);
+                const top3 = sortedLetters.slice(0, 3);
+                
+                // Fix: topLetter must be a single string key for the profile lookup
+                const primaryLetter = top3;
+                const prof = profiles[primaryLetter[0]];
+
+                if (!prof) {
+                    console.error("Profile not found for letter:", primaryLetter);
+                    location.reload(); // Fallback if something went wrong
+                    return;
+                }
+
+                // Display UI
+                document.getElementById('result-title').innerText = prof.title;
+                document.getElementById('result-desc').innerText = prof.desc;
+                document.getElementById('result-icon').className = `fa-solid ${prof.icon} text-4xl`;
+                document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white mb-6 ${prof.color}`;
+                document.getElementById('top-3-letters').innerText = top3.join('-');
+                
+                const jobCont = document.getElementById('job-suggestions');
+                jobCont.innerHTML = '';
+                prof.jobs.forEach(j => {
+                    const d = document.createElement('div');
+                    d.className = "p-4 bg-white rounded-xl shadow-sm border border-slate-100 font-bold text-slate-700 flex items-center";
+                    d.innerHTML = `<i class="fas fa-briefcase text-indigo-400 mr-3"></i> ${j}`;
+                    jobCont.appendChild(d);
+                });
+
+                showStep('result');
+                const ctx = document.getElementById('riasecChart').getContext('2d');
+                if (radarChart) radarChart.destroy();
+                radarChart = new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional'],
+                        datasets: [{ 
+                            label: 'Your Scores',
+                            data: [scores.R, scores.I, scores.A, scores.S, scores.E, scores.C], 
+                            backgroundColor: 'rgba(79,70,229,0.2)', 
+                            borderColor: '#4f46e5',
+                            pointBackgroundColor: '#4f46e5',
+                            borderWidth: 3
+                        }]
+                    },
+                    options: { 
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: { legend: { display: false } },
+                        scales: { 
+                            r: { 
+                                min: 0,
+                                suggestedMax: 15,
+                                ticks: { display: false },
+                                grid: { color: 'rgba(0,0,0,0.05)' },
+                                pointLabels: { font: { weight: 'bold', size: 12 } }
+                            } 
+                        } 
+                    }
+                });
+            }, 1200);
+        }
+    </script>
+</body>
+</html>
