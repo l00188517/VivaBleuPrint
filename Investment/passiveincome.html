@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dividend Passive Income Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-5xl mx-auto">
+        <!-- Header -->
+        <header class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-slate-800">Dividend Passive Income Tracker</h1>
+            <p class="text-slate-500 mt-2">Based on the "Retired in my 30s" Financial Framework</p>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <!-- Left Column: Goal Calculator -->
+            <div class="lg:col-span-1 space-y-6">
+                <section class="glass-card p-6 rounded-2xl shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 text-slate-700 flex items-center">
+                        <span class="mr-2">🎯</span> Retirement Goal
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Monthly Income Goal ($)</label>
+                            <input type="number" id="monthlyGoal" value="1000" class="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-600 mb-1">Estimated Dividend Yield (%)</label>
+                            <input type="number" id="targetYield" value="4" step="0.1" class="w-full p-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <div class="pt-4 border-t border-slate-100">
+                            <p class="text-sm text-slate-500">Required Capital:</p>
+                            <p id="requiredCapital" class="text-2xl font-bold text-blue-600">$300,000</p>
+                            <p class="text-xs text-slate-400 mt-1 italic">Calculation: (Goal × 12) / Yield</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="glass-card p-6 rounded-2xl shadow-sm bg-blue-50">
+                    <h3 class="font-bold text-slate-800 mb-2">Video Insights</h3>
+                    <ul class="text-sm text-slate-600 space-y-2">
+                        <li>✅ Dividend Aristocrats: 25+ years of increases.</li>
+                        <li>✅ Yield = Div per Share / Stock Price.</li>
+                        <li>✅ Tax-free allowance (UK example: £500).</li>
+                    </ul>
+                </section>
+            </div>
+
+            <!-- Right Column: Portfolio & Data -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Stock Addition Form -->
+                <section class="glass-card p-6 rounded-2xl shadow-sm">
+                    <h2 class="text-xl font-semibold mb-4 text-slate-700">Add Stock / ETF</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <input type="text" id="stockTicker" placeholder="Ticker (e.g. KO)" class="p-2 border rounded-lg">
+                        <input type="number" id="stockShares" placeholder="Shares" class="p-2 border rounded-lg">
+                        <input type="number" id="stockDiv" placeholder="Ann. Div/Share" step="0.01" class="p-2 border rounded-lg">
+                        <button onclick="addStock()" class="bg-blue-600 text-white font-semibold py-2 rounded-lg hover:bg-blue-700 transition">Add Position</button>
+                    </div>
+                    <div class="mt-4 flex gap-2">
+                        <span class="text-xs text-slate-400">Quick Add Video Favorites:</span>
+                        <button onclick="quickAdd('KO', 3.11)" class="text-xs bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">Coca-Cola (3.11%)</button>
+                        <button onclick="quickAdd('JNJ', 3.4)" class="text-xs bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">J&J (3.4%)</button>
+                        <button onclick="quickAdd('T', 4.58)" class="text-xs bg-slate-100 px-2 py-1 rounded hover:bg-slate-200">AT&T (4.58%)</button>
+                    </div>
+                </section>
+
+                <!-- Portfolio Table -->
+                <section class="glass-card rounded-2xl shadow-sm overflow-hidden">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                        <h2 class="text-xl font-semibold text-slate-700">My Portfolio</h2>
+                        <span id="progressBadge" class="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">0% of Goal Achieved</span>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead class="bg-slate-50 text-slate-500 text-sm uppercase">
+                                <tr>
+                                    <th class="px-6 py-3">Asset</th>
+                                    <th class="px-6 py-3">Shares</th>
+                                    <th class="px-6 py-3">Annual Income</th>
+                                    <th class="px-6 py-3">Monthly</th>
+                                    <th class="px-6 py-3 text-right">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="portfolioList" class="divide-y divide-slate-100">
+                                <!-- Data injected here -->
+                            </tbody>
+                            <tfoot class="bg-slate-50 font-bold">
+                                <tr>
+                                    <td class="px-6 py-4" colspan="2">TOTALS</td>
+                                    <td class="px-6 py-4 text-blue-600" id="totalAnnualIncome">$0.00</td>
+                                    <td class="px-6 py-4 text-blue-600" id="totalMonthlyIncome">$0.00</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feedback Message -->
+    <div id="toast" class="fixed bottom-8 right-8 bg-slate-800 text-white px-6 py-3 rounded-xl shadow-2xl opacity-0 transition-opacity duration-300 pointer-events-none">
+        Data saved to local database
+    </div>
+
+    <script>
+        // Constants
+        const DB_KEY = 'dividend_tracker_data';
+        
+        // Initial State
+        let state = {
+            goal: 1000,
+            yield: 4,
+            portfolio: []
+        };
+
+        // Load data on start
+        window.onload = () => {
+            const savedData = localStorage.getItem(DB_KEY);
+            if (savedData) {
+                state = JSON.parse(savedData);
+                document.getElementById('monthlyGoal').value = state.goal;
+                document.getElementById('targetYield').value = state.yield;
+            }
+            render();
+            setupEventListeners();
+        };
+
+        function setupEventListeners() {
+            document.getElementById('monthlyGoal').addEventListener('input', updateGoalSettings);
+            document.getElementById('targetYield').addEventListener('input', updateGoalSettings);
+        }
+
+        function updateGoalSettings() {
+            state.goal = parseFloat(document.getElementById('monthlyGoal').value) || 0;
+            state.yield = parseFloat(document.getElementById('targetYield').value) || 0;
+            save();
+            render();
+        }
+
+        function addStock() {
+            const ticker = document.getElementById('stockTicker').value.toUpperCase();
+            const shares = parseFloat(document.getElementById('stockShares').value);
+            const div = parseFloat(document.getElementById('stockDiv').value);
+
+            if (!ticker || isNaN(shares) || isNaN(div)) {
+                showToast("Please fill all fields correctly");
+                return;
+            }
+
+            state.portfolio.push({
+                id: Date.now(),
+                ticker,
+                shares,
+                div
+            });
+
+            // Clear inputs
+            document.getElementById('stockTicker').value = '';
+            document.getElementById('stockShares').value = '';
+            document.getElementById('stockDiv').value = '';
+
+            save();
+            render();
+            showToast("Asset added successfully");
+        }
+
+        function quickAdd(ticker, yieldPct) {
+            // Assume $100 stock price for quick calculation of div per share based on yield
+            // Yield = (Div / 100) * 100
+            document.getElementById('stockTicker').value = ticker;
+            document.getElementById('stockDiv').value = (yieldPct).toFixed(2);
+            document.getElementById('stockShares').focus();
+        }
+
+        function deleteStock(id) {
+            state.portfolio = state.portfolio.filter(item => item.id !== id);
+            save();
+            render();
+            showToast("Asset removed");
+        }
+
+        function save() {
+            localStorage.setItem(DB_KEY, JSON.stringify(state));
+        }
+
+        function render() {
+            const list = document.getElementById('portfolioList');
+            list.innerHTML = '';
+
+            // Calculate Required Capital based on Goal
+            const reqCap = (state.goal * 12) / (state.yield / 100);
+            document.getElementById('requiredCapital').innerText = `$${reqCap.toLocaleString(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 0})}`;
+
+            let totalAnnual = 0;
+
+            state.portfolio.forEach(item => {
+                const annual = item.shares * item.div;
+                totalAnnual += annual;
+
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition";
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-semibold text-slate-700">${item.ticker}</td>
+                    <td class="px-6 py-4 text-slate-600">${item.shares}</td>
+                    <td class="px-6 py-4 text-slate-600">$${annual.toFixed(2)}</td>
+                    <td class="px-6 py-4 text-slate-600">$${(annual / 12).toFixed(2)}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="deleteStock(${item.id})" class="text-red-400 hover:text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                        </button>
+                    </td>
+                `;
+                list.appendChild(row);
+            });
+
+            const totalMonthly = totalAnnual / 12;
+            document.getElementById('totalAnnualIncome').innerText = `$${totalAnnual.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('totalMonthlyIncome').innerText = `$${totalMonthly.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+
+            // Progress Badge
+            const progress = state.goal > 0 ? (totalMonthly / state.goal) * 100 : 0;
+            const badge = document.getElementById('progressBadge');
+            badge.innerText = `${progress.toFixed(1)}% of Goal Achieved`;
+            
+            if (progress >= 100) {
+                badge.className = "bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-full";
+            } else if (progress > 50) {
+                badge.className = "bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full";
+            } else {
+                badge.className = "bg-slate-100 text-slate-700 text-xs font-bold px-3 py-1 rounded-full";
+            }
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.opacity = '1';
+            setTimeout(() => { toast.style.opacity = '0'; }, 2000);
+        }
+    </script>
+</body>
+</html>
+                

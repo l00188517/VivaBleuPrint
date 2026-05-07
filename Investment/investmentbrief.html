@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Revolut Balanced Portfolio Guide</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f1f5f9 100%);
+        }
+
+        .investment-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .revolut-blue { color: #0075eb; }
+        .bg-revolut-blue { background-color: #0075eb; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* Mobile Menu Animation */
+        #mobile-drawer {
+            transition: transform 0.3s ease-in-out;
+        }
+        .drawer-open { transform: translateX(0) !important; }
+        .drawer-overlay-active { opacity: 1 !important; pointer-events: auto !important; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Mobile Drawer Overlay -->
+    <div id="drawer-overlay" onclick="toggleMenu()" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z- opacity-0 pointer-events-none transition-opacity duration-300"></div>
+
+    <!-- Mobile Slide-out Drawer -->
+    <div id="mobile-drawer" class="fixed top-0 right-0 h-full w-[280px] bg-white z- shadow-2xl transform translate-x-full transition-transform duration-300 flex flex-col">
+        <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+            <span class="font-bold text-slate-900">Menu</span>
+            <button onclick="toggleMenu()" class="p-2 hover:bg-slate-100 rounded-full transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+        <div class="flex-1 overflow-y-auto p-4 space-y-2">
+            <a href="calculators.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-revolut-blue transition font-medium">Calculators</a>
+            <a href="growthtracker.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-revolut-blue transition font-medium">Growth Tracker</a>
+            <a href="dividends.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-revolut-blue transition font-medium">Dividends</a>
+            <a href="passiveincome.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-revolut-blue transition font-medium">Passive Income</a>
+            <a href="projection.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-revolut-blue transition font-medium">Projection</a>
+            <a href="investmentbrief.html" class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-slate-700 hover:text-revolut-blue transition font-medium">Investment Brief</a>
+        </div>
+        <div class="p-6 border-t border-slate-100 space-y-3">
+            <button class="w-full py-3 text-slate-700 font-bold border border-slate-200 rounded-xl">Log In</button>
+            <button class="w-full py-3 bg-revolut-blue text-white font-bold rounded-xl shadow-lg shadow-blue-100">Get Started</button>
+        </div>
+    </div>
+
+    <!-- Main Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 md:h-20 items-center">
+                
+                <!-- Logo Section -->
+                <div class="flex items-center gap-2 md:gap-3 group cursor-pointer shrink-0">
+                    <div class="w-8 h-8 md:w-10 md:h-10 bg-revolut-blue rounded-lg md:rounded-xl flex items-center justify-center text-white font-extrabold shadow-lg shadow-blue-200 group-hover:scale-105 transition-transform">R</div>
+                    <span class="text-lg md:text-xl font-bold tracking-tight text-slate-900">Portfolio<span class="text-revolut-blue">Vault</span></span>
+                </div>
+
+                <!-- Desktop Menu (Hidden on Mobile/Tablet) -->
+                <div class="hidden xl:flex items-center bg-slate-100/50 p-1 rounded-xl mx-4">
+                    <a href="calculators.html" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-revolut-blue hover:bg-white rounded-lg transition-all duration-200">Calculators</a>
+                    <a href="growthtracker.html" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-revolut-blue hover:bg-white rounded-lg transition-all duration-200">Growth Tracker</a>
+                    <a href="dividends.html" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-revolut-blue hover:bg-white rounded-lg transition-all duration-200">Dividends</a>
+                    <a href="passiveincome.html" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-revolut-blue hover:bg-white rounded-lg transition-all duration-200">Passive Income</a>
+                    <a href="projection.html" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-revolut-blue hover:bg-white rounded-lg transition-all duration-200">Projection</a>
+                    <a href="investmentbrief.html" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:text-revolut-blue hover:bg-white rounded-lg transition-all duration-200">Investment Brief</a>
+                </div>
+
+                <!-- Action Buttons (Hidden on Mobile) -->
+                <div class="hidden lg:flex items-center gap-3 shrink-0">
+                    <button class="text-sm font-bold text-slate-600 hover:text-revolut-blue px-4 py-2 transition">Log In</button>
+                    <button class="bg-slate-900 text-white px-5 py-2.5 rounded-full text-sm font-bold hover:bg-revolut-blue hover:shadow-lg hover:shadow-blue-200 transition-all active:scale-95">
+                        Get Started
+                    </button>
+                </div>
+
+                <!-- Mobile Menu Button (Visible on Mobile/Tablet) -->
+                <button onclick="toggleMenu()" class="xl:hidden p-2 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 transition">
+                    <svg id="menu-icon-svg" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="py-12 md:py-20 bg-white border-b border-slate-100">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h1 class="text-3xl sm:text-4xl md:text-6xl font-extrabold text-slate-900 mb-6 tracking-tight px-4">
+                Top Investment Picks for <span class="text-revolut-blue">2026</span>
+            </h1>
+            <p class="text-base md:text-lg text-slate-600 max-w-2xl mx-auto mb-10 px-4">
+                Explore the top 20 Balanced Growth assets or the top 20 High-Yield Dividend stocks available right now on Revolut.
+            </p>
+            <div class="inline-flex flex-col sm:flex-row items-center gap-2 p-1.5 bg-slate-100 rounded-2xl sm:rounded-full w-full max-w-[400px] sm:w-auto">
+                <button onclick="setList('balanced')" id="btnBalanced" class="w-full sm:w-auto px-8 py-3 bg-white shadow-sm rounded-xl sm:rounded-full font-semibold text-slate-800 transition-all">Balanced</button>
+                <button onclick="setList('dividend')" id="btnDividend" class="w-full sm:w-auto px-8 py-3 text-slate-500 font-semibold transition-all">Dividends</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Strategy Summary (Only for Balanced) -->
+    <section id="calculator" class="py-12 md:py-16 bg-slate-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div id="calcView" class="grid lg:grid-cols-2 gap-8 md:gap-12 items-center">
+                <div class="bg-white p-6 md:p-8 rounded-3xl shadow-xl border border-slate-100">
+                    <h3 class="text-xl md:text-2xl font-bold mb-6">Interactive Strategy Builder</h3>
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">What is your Risk Appetite?</label>
+                            <input type="range" id="riskRange" min="1" max="3" value="2" step="1" 
+                                   class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                                   oninput="updateStrategy()">
+                            <div class="flex justify-between text-xs text-slate-400 mt-2 font-medium">
+                                <span>Conservative</span>
+                                <span>Balanced</span>
+                                <span>Aggressive</span>
+                            </div>
+                        </div>
+                        <div id="strategyResult" class="p-5 bg-blue-50 rounded-2xl border border-blue-100">
+                            <p class="text-blue-800 font-bold mb-1" id="strategyTitle">The Classic Balanced (60/40)</p>
+                            <p class="text-sm text-blue-600/90 leading-relaxed" id="strategyDesc">60% Stocks for growth, 40% Bonds for protection. Ideal for mid-term goals.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="p-6 bg-white rounded-2xl border border-slate-100 text-center shadow-sm">
+                        <div class="text-2xl md:text-3xl font-extrabold text-revolut-blue mb-1" id="stockPercent">60%</div>
+                        <div class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-widest">Equities</div>
+                    </div>
+                    <div class="p-6 bg-white rounded-2xl border border-slate-100 text-center shadow-sm">
+                        <div class="text-2xl md:text-3xl font-extrabold text-slate-800 mb-1" id="bondPercent">40%</div>
+                        <div class="text-[10px] md:text-xs text-slate-500 font-bold uppercase tracking-widest">Fixed Income</div>
+                    </div>
+                    <div class="col-span-2 p-6 bg-slate-900 rounded-2xl text-white shadow-lg">
+                        <p class="text-[10px] uppercase tracking-[0.2em] text-slate-400 mb-2 font-bold">Expected Outcome</p>
+                        <p class="text-sm md:text-base leading-relaxed font-medium" id="outcomeText">Moderate growth with lower volatility than 100% stock portfolios.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Investment Grid -->
+    <section id="investments" class="py-16 md:py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+                <div>
+                    <h2 class="text-2xl md:text-3xl font-bold text-slate-900" id="gridTitle">Top Balanced Assets</h2>
+                    <p class="text-slate-500" id="gridSubtitle">Handpicked for diversification and performance.</p>
+                </div>
+                <!-- Horizontal Scrollable Filter -->
+                <div class="flex gap-2 overflow-x-auto pb-2 w-full md:w-auto no-scrollbar">
+                    <button onclick="filterInvestments('all')" class="filter-btn active shrink-0 px-5 py-2 rounded-full text-sm font-bold bg-slate-900 text-white shadow-md">All</button>
+                    <button onclick="filterInvestments('ETF')" class="filter-btn shrink-0 px-5 py-2 rounded-full text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:border-slate-400 transition">ETFs</button>
+                    <button onclick="filterInvestments('Stock')" class="filter-btn shrink-0 px-5 py-2 rounded-full text-sm font-bold bg-white text-slate-600 border border-slate-200 hover:border-slate-400 transition">Stocks</button>
+                </div>
+            </div>
+
+            <div id="investmentGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- JavaScript will populate this -->
+            </div>
+        </div>
+    </section>
+
+    <footer class="bg-slate-900 text-slate-400 py-12">
+        <div class="max-w-7xl mx-auto px-4 text-center">
+            <p class="text-sm mb-4 font-bold">Revolut PortfolioVault Dashboard © 2026</p>
+            <p class="text-xs max-w-2xl mx-auto leading-relaxed opacity-60">
+                Disclaimer: Investing involves risk of loss. The assets listed are for informational purposes only and do not constitute financial advice. Past performance is not indicative of future results.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        const balancedInvestments = [
+            { id: 1, name: "Vanguard FTSE All-World", ticker: "VWCE", type: "ETF", cat: "Core", desc: "Covers entire global market." },
+            { id: 2, name: "iShares Core S&P 500", ticker: "VUSA", type: "ETF", cat: "Core", desc: "Top 500 US companies." },
+            { id: 3, name: "Vanguard Developed World", ticker: "VHVG", type: "ETF", cat: "Core", desc: "Established economies focus." },
+            { id: 4, name: "iShares MSCI Emerging Markets", ticker: "EIMI", type: "ETF", cat: "Core", desc: "China, India, Brazil growth." },
+            { id: 5, name: "Invesco NASDAQ 100", ticker: "EQQQ", type: "ETF", cat: "Core", desc: "Heavy technology sector focus." },
+            { id: 6, name: "iShares Global Aggregate Bond", ticker: "AGBP", type: "ETF", cat: "Stability", desc: "Worldwide government & corporate debt." },
+            { id: 7, name: "iShares JP Morgan EM Bond", ticker: "IEMB", type: "ETF", cat: "Stability", desc: "High-yield emerging market debt." },
+            { id: 8, name: "Revolut Flexible Cash", ticker: "MMF", type: "ETF", cat: "Stability", desc: "Daily interest, extremely low risk." },
+            { id: 9, name: "iShares $ Treasury 7-10yr", ticker: "IBTM", type: "ETF", cat: "Stability", desc: "Safe-haven US government debt." },
+            { id: 10, name: "iShares Physical Gold", ticker: "SGLN", type: "ETF", cat: "Alternative", desc: "Inflation and uncertainty hedge." },
+            { id: 11, name: "VanEck Defense ETF", ticker: "DFNS", type: "ETF", cat: "Alternative", desc: "Global security trends focus." },
+            { id: 12, name: "Energy Select Sector SPDR", ticker: "XLE", type: "ETF", cat: "Alternative", desc: "Oil and gas sector hedge." },
+            { id: 13, name: "Microsoft", ticker: "MSFT", type: "Stock", cat: "Growth", desc: "AI and enterprise leader." },
+            { id: 14, name: "Apple", ticker: "AAPL", type: "Stock", cat: "Growth", desc: "Loyal ecosystem & cash flow." },
+            { id: 15, name: "Alphabet", ticker: "GOOGL", type: "Stock", cat: "Growth", desc: "Search and YouTube dominance." },
+            { id: 16, name: "Amazon", ticker: "AMZN", type: "Stock", cat: "Growth", desc: "Cloud (AWS) & e-commerce titan." },
+            { id: 17, name: "NVIDIA", ticker: "NVDA", type: "Stock", cat: "Growth", desc: "Computing power for the AI age." },
+            { id: 18, name: "Berkshire Hathaway", ticker: "BRK.B", type: "Stock", cat: "Growth", desc: "Buffett's safe-haven conglomerate." },
+            { id: 19, name: "Visa", ticker: "V", type: "Stock", cat: "Growth", desc: "Global payment highway." },
+            { id: 20, name: "Coca-Cola", ticker: "KO", type: "Stock", cat: "Defensive", desc: "Recession-proof dividend staple." }
+        ];
+
+        const dividendInvestments = [
+            { id: 21, name: "Vanguard High Div Yield", ticker: "VYM", type: "ETF", cat: "Yield", desc: "Focuses on high-paying US stocks.", yield: "3.2%" },
+            { id: 22, name: "iShares Select Dividend", ticker: "DVY", type: "ETF", cat: "Yield", desc: "Stocks with 5-year dividend growth.", yield: "3.8%" },
+            { id: 23, name: "Altria Group", ticker: "MO", type: "Stock", cat: "Yield", desc: "Tobacco giant with massive yield.", yield: "8.1%" },
+            { id: 24, name: "Verizon", ticker: "VZ", type: "Stock", cat: "Yield", desc: "Telecom leader with stable cash flow.", yield: "6.4%" },
+            { id: 25, name: "AT&T", ticker: "T", type: "Stock", cat: "Yield", desc: "High yield telecom infrastructure.", yield: "6.1%" },
+            { id: 26, name: "Realty Income", ticker: "O", type: "Stock", cat: "Yield", desc: "Monthly dividend paying REIT.", yield: "5.5%" },
+            { id: 27, name: "PepsiCo", ticker: "PEP", type: "Stock", cat: "Yield", desc: "Consistent dividend aristocrat.", yield: "3.0%" },
+            { id: 28, name: "JPMorgan Chase", ticker: "JPM", type: "Stock", cat: "Yield", desc: "Leading bank with growing dividends.", yield: "2.4%" },
+            { id: 29, name: "Chevron", ticker: "CVX", type: "Stock", cat: "Yield", desc: "Energy major with high cash payout.", yield: "4.1%" },
+            { id: 30, name: "Pfizer", ticker: "PFE", type: "Stock", cat: "Yield", desc: "Pharma giant with high current yield.", yield: "5.8%" },
+            { id: 31, name: "3M Company", ticker: "MMM", type: "Stock", cat: "Yield", desc: "Industrial conglomerate high-yielder.", yield: "5.2%" },
+            { id: 32, name: "Enbridge", ticker: "ENB", type: "Stock", cat: "Yield", desc: "Energy infrastructure/pipeline giant.", yield: "7.2%" },
+            { id: 33, name: "British American Tobacco", ticker: "BTI", type: "Stock", cat: "Yield", desc: "Consumer goods with high-single digit yield.", yield: "8.5%" },
+            { id: 34, name: "Rio Tinto", ticker: "RIO", type: "Stock", cat: "Yield", desc: "Mining giant with cyclical high yield.", yield: "6.9%" },
+            { id: 35, name: "TotalEnergies", ticker: "TTE", type: "Stock", cat: "Yield", desc: "European energy with strong payout.", yield: "4.8%" },
+            { id: 36, name: "SPDR S&P Dividend", ticker: "SDY", type: "ETF", cat: "Yield", desc: "Dividend aristocrat index tracker.", yield: "2.6%" },
+            { id: 37, name: "Main Street Capital", ticker: "MAIN", type: "Stock", cat: "Yield", desc: "Business development company monthly yield.", yield: "6.0%" },
+            { id: 38, name: "Johnson & Johnson", ticker: "JNJ", type: "Stock", cat: "Yield", desc: "Healthcare staple with 60yr growth.", yield: "3.1%" },
+            { id: 39, name: "Philip Morris", ticker: "PM", type: "Stock", cat: "Yield", desc: "Global tobacco and smoke-free growth.", yield: "5.1%" },
+            { id: 40, name: "Vanguard Int'l High Div", ticker: "VYMI", type: "ETF", cat: "Yield", desc: "Non-US high yield exposure.", yield: "4.5%" }
+        ];
+
+        let currentView = 'balanced';
+
+        function toggleMenu() {
+            const drawer = document.getElementById('mobile-drawer');
+            const overlay = document.getElementById('drawer-overlay');
+            drawer.classList.toggle('drawer-open');
+            overlay.classList.toggle('drawer-overlay-active');
+            
+            // Prevent body scroll when menu is open
+            if(drawer.classList.contains('drawer-open')) {
+                document.body.style.overflow = 'hidden';
+            } else {
+                document.body.style.overflow = '';
+            }
+        }
+
+        function renderInvestments(items) {
+            const grid = document.getElementById('investmentGrid');
+            grid.innerHTML = '';
+            
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'investment-card card-gradient p-6 rounded-3xl border border-slate-200 transition-all duration-300 flex flex-col justify-between shadow-sm';
+                
+                const yieldBadge = item.yield ? `<span class="bg-green-100 text-green-700 px-2.5 py-1 rounded-lg text-[10px] font-extrabold uppercase tracking-tight">${item.yield} Yield</span>` : '';
+                
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="px-2 py-1 bg-slate-200 text-slate-600 rounded text-[9px] font-extrabold uppercase tracking-widest">${item.type}</span>
+                            <div class="text-right">
+                                <span class="text-revolut-blue block font-extrabold text-sm">${item.ticker}</span>
+                                ${yieldBadge}
+                            </div>
+                        </div>
+                        <h4 class="text-lg font-bold text-slate-900 mb-2 leading-tight">${item.name}</h4>
+                        <p class="text-xs md:text-sm text-slate-500 leading-relaxed mb-4 font-medium">${item.desc}</p>
+                    </div>
+                    <div class="pt-4 border-t border-slate-100">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">${item.cat} Portfolio</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function setList(type) {
+            currentView = type;
+            const btnB = document.getElementById('btnBalanced');
+            const btnD = document.getElementById('btnDividend');
+            const title = document.getElementById('gridTitle');
+            const subtitle = document.getElementById('gridSubtitle');
+            const calc = document.getElementById('calculator');
+
+            if (type === 'balanced') {
+                btnB.classList.add('bg-white', 'shadow-sm', 'text-slate-800');
+                btnB.classList.remove('text-slate-500');
+                btnD.classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
+                btnD.classList.add('text-slate-500');
+                title.innerText = "Top Balanced Assets";
+                subtitle.innerText = "Handpicked for diversification and performance.";
+                calc.style.display = 'block';
+                renderInvestments(balancedInvestments);
+            } else {
+                btnD.classList.add('bg-white', 'shadow-sm', 'text-slate-800');
+                btnD.classList.remove('text-slate-500');
+                btnB.classList.remove('bg-white', 'shadow-sm', 'text-slate-800');
+                btnB.classList.add('text-slate-500');
+                title.innerText = "Top 20 Dividend Yields";
+                subtitle.innerText = "Assets focused on generating high passive income.";
+                calc.style.display = 'none';
+                renderInvestments(dividendInvestments);
+            }
+        }
+
+        function filterInvestments(type) {
+            const source = currentView === 'balanced' ? balancedInvestments : dividendInvestments;
+            const filtered = type === 'all' ? source : source.filter(i => i.type === type);
+            renderInvestments(filtered);
+            
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('bg-slate-900', 'text-white');
+                btn.classList.add('bg-white', 'text-slate-600');
+            });
+            
+            // Set active state to the button clicked
+            event.currentTarget.classList.remove('bg-white', 'text-slate-600');
+            event.currentTarget.classList.add('bg-slate-900', 'text-white');
+        }
+
+        function updateStrategy() {
+            const val = document.getElementById('riskRange').value;
+            const title = document.getElementById('strategyTitle');
+            const desc = document.getElementById('strategyDesc');
+            const stockPct = document.getElementById('stockPercent');
+            const bondPct = document.getElementById('bondPercent');
+            const outcome = document.getElementById('outcomeText');
+
+            if (val == 1) {
+                title.innerText = "Conservative (20/80)";
+                desc.innerText = "Focus on preserving capital with heavy bond and cash exposure.";
+                stockPct.innerText = "20%";
+                bondPct.innerText = "80%";
+                outcome.innerText = "Low risk, steady small returns. Protective against market drops.";
+            } else if (val == 2) {
+                title.innerText = "The Classic Balanced (60/40)";
+                desc.innerText = "60% Stocks for growth, 40% Bonds for protection. Ideal for mid-term goals.";
+                stockPct.innerText = "60%";
+                bondPct.innerText = "40%";
+                outcome.innerText = "Moderate growth with lower volatility than 100% stock portfolios.";
+            } else {
+                title.innerText = "Growth-Aggressive (80/20)";
+                desc.innerText = "High stock exposure for long-term compounding. High volatility expected.";
+                stockPct.innerText = "80%";
+                bondPct.innerText = "20%";
+                outcome.innerText = "Maximum long-term wealth building; significant price swings possible.";
+            }
+        }
+
+        window.onload = () => {
+            renderInvestments(balancedInvestments);
+            updateStrategy();
+        };
+    </script>
+</body>
+</html>

@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Stock Deposit Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .result-card { background: white; border-radius: 1.5rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.04); }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+        input[type="month"] { color-scheme: light; }
+    </style>
+</head>
+<body class="text-slate-900 min-h-screen py-12 px-4">
+
+<div id="app" class="max-w-4xl mx-auto space-y-6">
+    <header class="text-center mb-10">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-600 rounded-2xl shadow-xl shadow-indigo-200 mb-4">
+            <i data-lucide="line-chart" class="w-8 h-8 text-white"></i>
+        </div>
+        <h1 class="text-3xl font-extrabold tracking-tight text-slate-900">Monthly Portfolio Growth Tracker</h1>
+        <p class="text-slate-500 mt-2 font-medium">Save monthly snapshots and track your yearly progress</p>
+    </header>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="lg:col-span-2 space-y-6">
+            <div class="result-card p-6">
+                <div class="flex flex-wrap items-center justify-between gap-4 mb-8">
+                    <div>
+                        <h3 class="font-bold text-slate-800 text-lg">Monthly Plan</h3>
+                        <p class="text-xs text-slate-400 font-medium uppercase tracking-wider">Current Month Data</p>
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <input type="month" id="save-month-picker" class="bg-slate-100 border-none rounded-xl px-3 py-2 text-sm font-bold text-slate-600 outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                        
+                        <button onclick="addStockRow()" class="text-xs font-bold bg-slate-100 text-slate-600 px-3 py-2 rounded-xl hover:bg-slate-200 transition-all">
+                            + Add Stock
+                        </button>
+                        <button onclick="saveMonthlySnapshot()" class="flex items-center gap-2 text-sm font-bold bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100 active:scale-95">
+                            <i data-lucide="save" class="w-4 h-4"></i>
+                            Save
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto hide-scrollbar">
+                    <table class="w-full text-left border-separate border-spacing-y-3">
+                        <thead class="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                            <tr>
+                                <th class="pb-2 px-4">Ticker</th>
+                                <th class="pb-2 px-4">Price (€)</th>
+                                <th class="pb-2 px-4">Deposit (€)</th>
+                                <th class="pb-2 px-4">Yield %</th>
+                                <th class="pb-2"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="stock-table-body"></tbody>
+                    </table>
+                </div>
+
+                <div class="mt-8 grid grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-900 rounded-2xl text-white">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Invested</p>
+                        <p id="totalMonthlyInvested" class="text-xl font-black">€0.00</p>
+                    </div>
+                    <div class="p-4 bg-emerald-50 rounded-2xl border border-emerald-100">
+                        <p class="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-1">Monthly Divs</p>
+                        <p id="totalMonthlyDividends" class="text-xl font-black text-emerald-700">€0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="result-card p-6">
+                <h3 class="font-bold text-slate-800 mb-6">Yearly Progress</h3>
+                <div class="h-64">
+                    <canvas id="yearlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="lg:col-span-1 space-y-6">
+            <div class="result-card p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="font-bold text-slate-800">Saved History</h3>
+                    <button onclick="clearAllData()" class="text-[10px] font-bold text-red-400 uppercase hover:text-red-600 transition-colors">Clear All</button>
+                </div>
+                <div id="saved-months-list" class="space-y-3 max-h-[600px] overflow-y-auto hide-scrollbar">
+                    <p class="text-center text-slate-400 text-xs py-10 italic">No data saved yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer class="text-center text-slate-400 text-[10px] font-medium leading-relaxed uppercase tracking-widest pt-4">
+        Data saved to local browser storage <br>
+        All projections are gross before taxation
+    </footer>
+</div>
+
+<script>
+    let portfolio = JSON.parse(localStorage.getItem('current_portfolio')) || [
+        { ticker: 'VUSA', price: 95.50, deposit: 500, yield: 1.25 },
+        { ticker: 'SCHD', price: 78.20, deposit: 300, yield: 3.45 }
+    ];
+
+    let history = JSON.parse(localStorage.getItem('portfolio_history')) || [];
+    let chartInstance = null;
+
+    const setMonthPickerToNow = () => {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        document.getElementById('save-month-picker').value = `${year}-${month}`;
+    };
+
+    function addStockRow() {
+        portfolio.push({ ticker: 'NEW', price: 100, deposit: 0, yield: 0 });
+        renderStocks();
+        saveCurrentState();
+    }
+
+    function removeStockRow(index) {
+        portfolio.splice(index, 1);
+        renderStocks();
+        saveCurrentState();
+    }
+
+    function updateStock(index, field, value) {
+        if (field === 'ticker') portfolio[index][field] = value.toUpperCase();
+        else portfolio[index][field] = parseFloat(value) || 0;
+        
+        saveCurrentState();
+        calculateTotals();
+    }
+
+    function calculateTotals() {
+        let totalDeposit = 0;
+        let totalMonthlyDiv = 0;
+
+        portfolio.forEach((stock) => {
+            const monthlyDiv = (stock.deposit * (stock.yield / 100)) / 12;
+            totalDeposit += stock.deposit;
+            totalMonthlyDiv += monthlyDiv;
+        });
+
+        document.getElementById('totalMonthlyInvested').innerText = `€${totalDeposit.toLocaleString()}`;
+        document.getElementById('totalMonthlyDividends').innerText = `€${totalMonthlyDiv.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+    }
+
+    function saveCurrentState() {
+        localStorage.setItem('current_portfolio', JSON.stringify(portfolio));
+    }
+
+    function saveMonthlySnapshot() {
+        const picker = document.getElementById('save-month-picker');
+        if (!picker.value) return;
+
+        const [year, month] = picker.value.split('-');
+        const dateObj = new Date(year, month - 1);
+        const dateString = dateObj.toLocaleDateString('en-IE', { month: 'short', year: 'numeric' });
+
+        const totalInvested = portfolio.reduce((sum, s) => sum + s.deposit, 0);
+        const annualDiv = portfolio.reduce((sum, s) => sum + (s.deposit * (s.yield / 100)), 0);
+        
+        const snapshot = {
+            id: Date.now(),
+            date: dateString,
+            rawDate: picker.value,
+            invested: totalInvested,
+            dividends: annualDiv / 12,
+            stockCount: portfolio.length,
+            portfolioDetails: JSON.parse(JSON.stringify(portfolio)) 
+        };
+
+        const existingIndex = history.findIndex(h => h.rawDate === snapshot.rawDate);
+        if (existingIndex > -1) {
+            history[existingIndex] = snapshot;
+        } else {
+            history.push(snapshot);
+        }
+
+        history.sort((a, b) => a.rawDate.localeCompare(b.rawDate));
+        if (history.length > 24) history.shift();
+        
+        localStorage.setItem('portfolio_history', JSON.stringify(history));
+        renderHistory();
+        updateChart();
+    }
+
+    // Explicitly binding to window to ensure HTML onclick can find them
+    window.loadHistoryItem = function(id) {
+        const item = history.find(h => h.id == id);
+        if (!item || !item.portfolioDetails) return;
+        
+        if(confirm(`Load data from ${item.date}? This will overwrite your current unsaved table.`)) {
+            portfolio = JSON.parse(JSON.stringify(item.portfolioDetails));
+            document.getElementById('save-month-picker').value = item.rawDate;
+            renderStocks();
+            saveCurrentState();
+        }
+    };
+
+    window.deleteHistoryItem = function(id) {
+        if(confirm("Delete this monthly snapshot?")) {
+            history = history.filter(item => item.id != id);
+            localStorage.setItem('portfolio_history', JSON.stringify(history));
+            renderHistory();
+            updateChart();
+        }
+    };
+
+    window.clearAllData = function() {
+        if(confirm("Are you sure you want to delete all saved monthly snapshots? This cannot be undone.")) {
+            history = [];
+            localStorage.removeItem('portfolio_history');
+            renderHistory();
+            updateChart();
+        }
+    };
+
+    function renderStocks() {
+        const tbody = document.getElementById('stock-table-body');
+        tbody.innerHTML = '';
+        
+        portfolio.forEach((stock, index) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td class="py-1 px-1">
+                    <input type="text" value="${stock.ticker}" oninput="updateStock(${index}, 'ticker', this.value)" 
+                        class="w-full bg-slate-50 p-3 rounded-xl font-bold text-slate-800 outline-none border border-transparent focus:border-indigo-300">
+                </td>
+                <td class="py-1 px-1">
+                    <input type="number" value="${stock.price}" oninput="updateStock(${index}, 'price', this.value)" 
+                        class="w-full bg-slate-50 p-3 rounded-xl font-medium outline-none border border-transparent focus:border-indigo-300">
+                </td>
+                <td class="py-1 px-1">
+                    <input type="number" value="${stock.deposit}" oninput="updateStock(${index}, 'deposit', this.value)" 
+                        class="w-full bg-slate-50 p-3 rounded-xl font-black text-indigo-600 outline-none border border-transparent focus:border-indigo-300">
+                </td>
+                <td class="py-1 px-1">
+                    <input type="number" value="${stock.yield}" oninput="updateStock(${index}, 'yield', this.value)" 
+                        class="w-full bg-slate-50 p-3 rounded-xl font-bold text-emerald-600 outline-none border border-transparent focus:border-emerald-300">
+                </td>
+                <td class="py-1 px-2 text-right">
+                    <button onclick="removeStockRow(${index})" class="p-2 text-slate-300 hover:text-red-500 transition-colors"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                </td>
+            `;
+            tbody.appendChild(tr);
+        });
+
+        calculateTotals();
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function renderHistory() {
+        const container = document.getElementById('saved-months-list');
+        if (history.length === 0) {
+            container.innerHTML = `<p class="text-center text-slate-400 text-xs py-10 italic">No data saved yet</p>`;
+            return;
+        }
+
+        // Using reverse copy for display
+        container.innerHTML = [...history].reverse().map(item => `
+            <div class="p-4 bg-slate-50 border border-slate-100 rounded-2xl flex justify-between items-center hover:bg-white hover:border-indigo-100 transition-all">
+                <div class="flex-1">
+                    <p class="text-[10px] font-black text-indigo-400 uppercase tracking-widest">${item.date}</p>
+                    <p class="font-black text-slate-800 text-sm">€${item.invested.toLocaleString()}</p>
+                    <p class="text-[10px] font-medium text-emerald-600">+€${item.dividends.toFixed(2)} Divs</p>
+                </div>
+                <div class="flex gap-1">
+                    <button onclick="window.loadHistoryItem(${item.id})" 
+                            title="Load & Edit"
+                            class="p-2 text-indigo-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all">
+                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                    </button>
+                    <button onclick="window.deleteHistoryItem(${item.id})" 
+                            title="Delete"
+                            class="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+        
+        if (window.lucide) lucide.createIcons();
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('yearlyChart').getContext('2d');
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: history.map(h => h.date),
+                datasets: [{
+                    label: 'Invested',
+                    data: history.map(h => h.invested),
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderColor: '#4f46e5',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#4f46e5',
+                    fill: true,
+                    tension: 0.4,
+                    yAxisID: 'y',
+                }, {
+                    label: 'Dividends',
+                    data: history.map(h => h.dividends),
+                    borderColor: '#10b981',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#10b981',
+                    fill: false,
+                    tension: 0.4,
+                    yAxisID: 'y1',
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { 
+                    legend: { 
+                        display: true,
+                        position: 'top',
+                        align: 'end',
+                        labels: {
+                            usePointStyle: true,
+                            boxWidth: 6,
+                            font: { size: 10, weight: 'bold' }
+                        }
+                    } 
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { 
+                        beginAtZero: true, 
+                        position: 'left',
+                        grid: { color: '#f1f5f9' },
+                        ticks: { callback: v => '€' + v }
+                    },
+                    y1: {
+                        beginAtZero: true,
+                        position: 'right',
+                        grid: { display: false },
+                        ticks: { color: '#10b981', callback: v => '€' + v.toFixed(2) }
+                    }
+                }
+            }
+        });
+    }
+
+    function updateChart() {
+        if (!chartInstance) return;
+        chartInstance.data.labels = history.map(h => h.date);
+        chartInstance.data.datasets[0].data = history.map(h => h.invested);
+        chartInstance.data.datasets[1].data = history.map(h => h.dividends);
+        chartInstance.update();
+    }
+
+    window.onload = () => {
+        setMonthPickerToNow();
+        renderStocks();
+        renderHistory();
+        initChart();
+        if (window.lucide) lucide.createIcons();
+    };
+</script>
+
+</body>
+</html>
