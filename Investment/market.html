@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PortfolioVault | Global Asset Directory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --revolut-blue: #0075eb;
+            --bg-main: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-main);
+            color: #1e293b;
+            scroll-behavior: smooth;
+        }
+
+        .revolut-blue-text { color: var(--revolut-blue); }
+        .bg-revolut-blue { background-color: var(--revolut-blue); }
+
+        .sidebar-link {
+            transition: all 0.2s ease;
+            border-radius: 12px;
+            margin-bottom: 4px;
+        }
+
+        .sidebar-link:hover {
+            background-color: #f1f5f9;
+            color: var(--revolut-blue);
+        }
+
+        .sidebar-link.active {
+            background-color: #eff6ff;
+            color: var(--revolut-blue);
+            font-weight: 700;
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+        }
+
+        .asset-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .asset-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 20px -5px rgba(0, 0, 0, 0.08);
+            border-color: #bfdbfe;
+        }
+
+        .sticky-sidebar {
+            height: calc(100vh - 5rem);
+            position: sticky;
+            top: 5rem;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        @media (max-width: 1024px) {
+            .sticky-sidebar { display: none; }
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="antialiased">
+
+    <!-- Navigation -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200">
+        <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                
+                <div class="flex items-center gap-3 group cursor-pointer shrink-0">
+                    <div class="w-9 h-9 bg-revolut-blue rounded-xl flex items-center justify-center text-white font-extrabold shadow-lg shadow-blue-200">R</div>
+                    <span class="text-xl font-bold tracking-tight text-slate-900">Portfolio<span class="revolut-blue-text">Vault</span></span>
+                </div>
+
+                <div class="flex-1 max-w-xl mx-8 hidden md:block">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                            <i class="fas fa-search"></i>
+                        </span>
+                        <input type="text" id="assetSearch" onkeyup="filterAssets()" 
+                            class="block w-full pl-11 pr-4 py-2.5 border border-slate-200 rounded-2xl bg-slate-50 focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all outline-none text-sm font-medium" 
+                            placeholder="Search symbols, names, or metrics...">
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <button class="bg-slate-900 text-white px-5 py-2 rounded-full text-sm font-bold hover:bg-revolut-blue transition-all active:scale-95 hidden sm:block">
+                        Get Started
+                    </button>
+                    <button class="text-slate-500 md:hidden" onclick="toggleMobileSearch()">
+                        <i class="fas fa-search text-xl"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="hidden lg:block w-72 bg-white border-r border-slate-200 sticky-sidebar overflow-y-auto">
+            <div class="p-6">
+                <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Asset Classes</p>
+                <nav class="space-y-1">
+                    <a href="#stocks" class="sidebar-link flex items-center px-4 py-3 text-slate-600 font-medium" onclick="setActive(this)">
+                        <i class="fas fa-chart-line mr-3 w-5 opacity-70"></i>Stocks
+                    </a>
+                    <a href="#etfs" class="sidebar-link flex items-center px-4 py-3 text-slate-600 font-medium" onclick="setActive(this)">
+                        <i class="fas fa-layer-group mr-3 w-5 opacity-70"></i>ETFs
+                    </a>
+                    <a href="#bonds" class="sidebar-link flex items-center px-4 py-3 text-slate-600 font-medium" onclick="setActive(this)">
+                        <i class="fas fa-landmark mr-3 w-5 opacity-70"></i>Bonds
+                    </a>
+                    <a href="#cfds" class="sidebar-link flex items-center px-4 py-3 text-slate-600 font-medium" onclick="setActive(this)">
+                        <i class="fas fa-bolt mr-3 w-5 opacity-70"></i>CFDs
+                    </a>
+                    <a href="#commodities" class="sidebar-link flex items-center px-4 py-3 text-slate-600 font-medium" onclick="setActive(this)">
+                        <i class="fas fa-gem mr-3 w-5 opacity-70"></i>Commodities
+                    </a>
+                    <a href="#cash" class="sidebar-link flex items-center px-4 py-3 text-slate-600 font-medium" onclick="setActive(this)">
+                        <i class="fas fa-wallet mr-3 w-5 opacity-70"></i>Cash/Forex
+                    </a>
+                </nav>
+
+                <div class="mt-8 pt-8 border-t border-slate-100">
+                    <p class="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Learn</p>
+                    <a href="#mutual-funds" class="sidebar-link flex items-center px-4 py-3 text-slate-600 font-medium" onclick="setActive(this)">
+                        <i class="fas fa-graduation-cap mr-3 w-5 opacity-70"></i>Mutual Funds
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 w-full min-h-screen">
+            <div id="mobileSearch" class="md:hidden bg-white px-4 py-3 border-b border-slate-200 hidden">
+                <input type="text" onkeyup="filterAssets()" class="w-full p-3 bg-slate-50 rounded-xl text-sm outline-none border border-slate-200" placeholder="Search...">
+            </div>
+
+            <div class="max-w-7xl mx-auto px-4 py-10 sm:px-8 lg:px-12">
+                
+                <!-- Hero Header -->
+                <header class="mb-16">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 rounded-full mb-6">
+                        <span class="w-2 h-2 bg-revolut-blue rounded-full animate-pulse"></span>
+                        <span class="text-[10px] font-bold text-revolut-blue uppercase tracking-wider">Live Directory 2026</span>
+                    </div>
+                    <h1 class="text-4xl md:text-5xl font-extrabold text-slate-900 mb-4 tracking-tight">Market <span class="revolut-blue-text">Explorer</span></h1>
+                    <p class="text-slate-500 text-lg max-w-2xl leading-relaxed">A comprehensive database of 120+ global instruments with real-time price estimates and dividend yields.</p>
+                </header>
+
+                <!-- Dynamic Sections -->
+                <div id="content-container"></div>
+
+                <!-- Education Section -->
+                <section id="mutual-funds" class="mt-24 pt-16 border-t border-slate-200 scroll-mt-24">
+                    <div class="max-w-3xl mb-12">
+                        <h2 class="text-3xl font-extrabold text-slate-900 mb-4">Mutual Fund Taxonomy</h2>
+                        <p class="text-slate-500 text-lg font-medium">Professional-grade insights into how various fund structures manage capital and risk.</p>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="funds-container"></div>
+                </section>
+
+                <footer class="mt-24 py-16 border-t border-slate-200">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-8">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-slate-200 rounded-lg flex items-center justify-center text-slate-500 font-bold">R</div>
+                            <span class="font-bold text-slate-400">PortfolioVault Directory</span>
+                        </div>
+                        <p class="text-slate-400 text-sm">© 2026 PortfolioVault. Financial data for educational usage only.</p>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const assetData = {
+            stocks: [
+                { s: "AAPL", n: "Apple Inc.", p: 185.92, d: 0.52 }, { s: "MSFT", n: "Microsoft Corp.", p: 415.10, d: 0.72 }, 
+                { s: "GOOGL", n: "Alphabet Inc.", p: 147.60, d: 0.00 }, { s: "AMZN", n: "Amazon.com Inc.", p: 178.22, d: 0.00 }, 
+                { s: "TSLA", n: "Tesla Inc.", p: 175.43, d: 0.00 }, { s: "NVDA", n: "NVIDIA Corp.", p: 875.28, d: 0.02 }, 
+                { s: "META", n: "Meta Platforms", p: 494.16, d: 0.40 }, { s: "BRK.B", n: "Berkshire Hathaway", p: 408.20, d: 0.00 }, 
+                { s: "V", n: "Visa Inc.", p: 279.15, d: 0.75 }, { s: "UNH", n: "UnitedHealth Group", p: 485.40, d: 1.55 },
+                { s: "JPM", n: "JPMorgan Chase & Co.", p: 198.52, d: 2.12 }, { s: "WMT", n: "Walmart Inc.", p: 60.23, d: 1.38 }, 
+                { s: "MA", n: "Mastercard Inc.", p: 472.10, d: 0.56 }, { s: "JNJ", n: "Johnson & Johnson", p: 158.42, d: 3.01 }, 
+                { s: "PG", n: "Procter & Gamble Co.", p: 162.15, d: 2.40 }, { s: "LLY", n: "Eli Lilly & Co.", p: 755.30, d: 0.68 }, 
+                { s: "AVGO", n: "Broadcom Inc.", p: 1350.20, d: 1.56 }, { s: "HD", n: "Home Depot Inc.", p: 385.12, d: 2.34 }, 
+                { s: "CVX", n: "Chevron Corp.", p: 155.60, d: 4.12 }, { s: "XOM", n: "Exxon Mobil Corp.", p: 112.45, d: 3.38 }
+            ],
+            etfs: [
+                { s: "SPY", n: "SPDR S&P 500 ETF Trust", p: 512.30, d: 1.32 }, { s: "IVV", n: "iShares Core S&P 500 ETF", p: 514.15, d: 1.35 }, 
+                { s: "VOO", n: "Vanguard S&P 500 ETF", p: 470.22, d: 1.38 }, { s: "QQQ", n: "Invesco QQQ Trust", p: 438.10, d: 0.58 }, 
+                { s: "VTI", n: "Vanguard Total Stock Market", p: 255.40, d: 1.40 }, { s: "VEA", n: "Vanguard FTSE Developed Markets", p: 48.92, d: 3.10 }, 
+                { s: "IEFA", n: "iShares Core MSCI EAFE ETF", p: 72.15, d: 2.85 }, { s: "VWO", n: "Vanguard FTSE Emerging Markets", p: 41.20, d: 3.45 }, 
+                { s: "AGG", n: "iShares Core US Aggregate Bond", p: 97.45, d: 3.22 }, { s: "BND", n: "Vanguard Total Bond Market", p: 72.85, d: 3.25 },
+                { s: "GLD", n: "SPDR Gold Shares", p: 215.42, d: 0.00 }, { s: "IWM", n: "iShares Russell 2000 ETF", p: 205.10, d: 1.45 }, 
+                { s: "VUG", n: "Vanguard Growth ETF", p: 345.22, d: 0.55 }, { s: "VTV", n: "Vanguard Value ETF", p: 158.90, d: 2.38 }, 
+                { s: "EFA", n: "iShares MSCI EAFE ETF", p: 78.45, d: 2.90 }, { s: "VIG", n: "Vanguard Dividend Appreciation", p: 182.10, d: 1.85 }, 
+                { s: "SCHD", n: "Schwab US Dividend Equity", p: 78.52, d: 3.42 }, { s: "VNQ", n: "Vanguard Real Estate ETF", p: 84.20, d: 4.10 }, 
+                { s: "IJH", n: "iShares Core S&P Mid-Cap ETF", p: 295.40, d: 1.55 }, { s: "IXUS", n: "iShares Core MSCI Total Intl", p: 64.22, d: 3.05 }
+            ],
+            bonds: [
+                { s: "UST2Y", n: "US 2-Year Treasury Note", p: 99.45, d: 4.85 }, { s: "UST5Y", n: "US 5-Year Treasury Note", p: 98.22, d: 4.35 }, 
+                { s: "UST10Y", n: "US 10-Year Treasury Note", p: 95.10, d: 4.25 }, { s: "UST30Y", n: "US 30-Year Treasury Bond", p: 88.40, d: 4.40 }, 
+                { s: "BUND10Y", n: "German 10Y Bund", p: 102.15, d: 2.35 }, { s: "GILT10Y", n: "UK 10Y Gilt", p: 100.45, d: 4.10 }, 
+                { s: "JGB10Y", n: "Japan 10Y Govt Bond", p: 101.12, d: 0.75 }, { s: "CAN10Y", n: "Canada 10Y Govt Bond", p: 98.55, d: 3.55 }, 
+                { s: "AUS10Y", n: "Australia 10Y Govt Bond", p: 97.42, d: 4.15 }, { s: "FRA10Y", n: "France 10Y OAT", p: 101.90, d: 2.85 },
+                { s: "ITA10Y", n: "Italy 10Y BTP", p: 94.22, d: 3.90 }, { s: "LQD", n: "iShares iBoxx $ IG Corp", p: 108.45, d: 4.12 }, 
+                { s: "HYG", n: "iShares iBoxx $ High Yield", p: 77.20, d: 5.85 }, { s: "BNDX", n: "Vanguard Intl Bond ETF", p: 48.95, d: 2.45 }, 
+                { s: "EMB", n: "iShares JP Morgan Emerging", p: 88.22, d: 5.15 }, { s: "MUB", n: "iShares National Muni Bond", p: 105.40, d: 2.85 }, 
+                { s: "TIP", n: "iShares TIPS Bond ETF", p: 106.12, d: 2.15 }, { s: "TLT", n: "iShares 20+ Year Treasury", p: 94.15, d: 3.45 }, 
+                { s: "SHY", n: "iShares 1-3 Year Treasury", p: 81.45, d: 2.10 }, { s: "GOVT", n: "iShares US Treasury Bond", p: 22.85, d: 2.35 }
+            ],
+            cfds: [
+                { s: "US30", n: "Dow Jones Industrial Average", p: 39131, d: 1.88 }, { s: "US500", n: "S&P 500 Index", p: 5185, d: 1.35 }, 
+                { s: "NAS100", n: "Nasdaq 100 Index", p: 18240, d: 0.65 }, { s: "UK100", n: "FTSE 100 Index", p: 7935, d: 3.85 }, 
+                { s: "GER40", n: "DAX 40 Index", p: 18120, d: 3.10 }, { s: "FRA40", n: "CAC 40 Index", p: 8150, d: 2.95 }, 
+                { s: "JPN225", n: "Nikkei 225", p: 39500, d: 1.75 }, { s: "HKG50", n: "Hang Seng Index", p: 16800, d: 3.55 }, 
+                { s: "AUS200", n: "ASX 200 Index", p: 7780, d: 4.15 }, { s: "ESTX50", n: "Euro Stoxx 50", p: 5050, d: 2.80 },
+                { s: "BTCUSD", n: "Bitcoin / USD CFD", p: 68420, d: 0.00 }, { s: "ETHUSD", n: "Ethereum / USD CFD", p: 3450, d: 0.00 }, 
+                { s: "XRPUSD", n: "Ripple / USD CFD", p: 0.62, d: 0.00 }, { s: "LTCUSD", n: "Litecoin / USD CFD", p: 98.45, d: 0.00 }, 
+                { s: "SOLUSD", n: "Solana / USD CFD", p: 185.20, d: 0.00 }, { s: "DOTUSD", n: "Polkadot / USD CFD", p: 9.45, d: 0.00 }, 
+                { s: "ADAUSD", n: "Cardano / USD CFD", p: 0.58, d: 0.00 }, { s: "AVAX", n: "Avalanche CFD", p: 48.20, d: 0.00 }, 
+                { s: "LINK", n: "Chainlink CFD", p: 18.45, d: 0.00 }, { s: "MATIC", n: "Polygon CFD", p: 0.92, d: 0.00 }
+            ],
+            commodities: [
+                { s: "XAU", n: "Gold Spot", p: 2185.40, d: 0.00 }, { s: "XAG", n: "Silver Spot", p: 24.52, d: 0.00 }, 
+                { s: "XPT", n: "Platinum", p: 915.20, d: 0.00 }, { s: "XPD", n: "Palladium", p: 1025.45, d: 0.00 }, 
+                { s: "WTI", n: "WTI Crude Oil", p: 81.45, d: 0.00 }, { s: "BRENT", n: "Brent Crude Oil", p: 85.92, d: 0.00 }, 
+                { s: "NG", n: "Natural Gas", p: 1.78, d: 0.00 }, { s: "CU", n: "Copper", p: 3.92, d: 0.00 }, 
+                { s: "AL", n: "Aluminum", p: 2250.40, d: 0.00 }, { s: "ZN", n: "Zinc", p: 2450.12, d: 0.00 },
+                { s: "NI", n: "Nickel", p: 17850, d: 0.00 }, { s: "ZC", n: "Corn", p: 435.20, d: 0.00 }, 
+                { s: "ZW", n: "Wheat", p: 545.45, d: 0.00 }, { s: "ZS", n: "Soybeans", p: 1185.10, d: 0.00 }, 
+                { s: "KC", n: "Coffee", p: 185.40, d: 0.00 }, { s: "SB", n: "Sugar No. 11", p: 21.45, d: 0.00 }, 
+                { s: "CC", n: "Cocoa", p: 8450, d: 0.00 }, { s: "CT", n: "Cotton", p: 92.15, d: 0.00 }, 
+                { s: "LB", n: "Lumber", p: 585.20, d: 0.00 }, { s: "LC", n: "Live Cattle", p: 188.45, d: 0.00 }
+            ],
+            cash: [
+                { s: "EUR/USD", n: "Euro / US Dollar", p: 1.0852, d: 3.50 }, { s: "GBP/USD", n: "British Pound / USD", p: 1.2745, d: 4.25 }, 
+                { s: "USD/JPY", n: "US Dollar / Japanese Yen", p: 148.92, d: 0.10 }, { s: "USD/CHF", n: "US Dollar / Swiss Franc", p: 0.8845, d: 1.50 }, 
+                { s: "AUD/USD", n: "Australian Dollar / USD", p: 0.6612, d: 3.85 }, { s: "USD/CAD", n: "US Dollar / Canadian Dollar", p: 1.3485, d: 4.00 }, 
+                { s: "NZD/USD", n: "New Zealand Dollar / USD", p: 0.6122, d: 4.50 }, { s: "EUR/GBP", n: "Euro / British Pound", p: 0.8522, d: 0.00 }, 
+                { s: "EUR/JPY", n: "Euro / Japanese Yen", p: 161.45, d: 0.00 }, { s: "GBP/JPY", n: "British Pound / Japanese Yen", p: 189.92, d: 0.00 },
+                { s: "AUD/JPY", n: "Australian Dollar / Japanese Yen", p: 98.45, d: 0.00 }, { s: "EUR/CHF", n: "Euro / Swiss Franc", p: 0.9582, d: 0.00 }, 
+                { s: "USD/SGD", n: "US Dollar / Singapore Dollar", p: 1.3385, d: 0.00 }, { s: "USD/HKD", n: "US Dollar / Hong Kong Dollar", p: 7.82, d: 0.00 }, 
+                { s: "USD/CNH", n: "USD / Chinese Offshore Yuan", p: 7.21, d: 0.00 }, { s: "USD/MXN", n: "US Dollar / Mexican Peso", p: 16.85, d: 0.00 }, 
+                { s: "USD/ZAR", n: "USD / South African Rand", p: 18.82, d: 0.00 }, { s: "USD/TRY", n: "US Dollar / Turkish Lira", p: 32.12, d: 0.00 }, 
+                { s: "USD/SEK", n: "US Dollar / Swedish Krona", p: 10.35, d: 0.00 }, { s: "USD/NOK", n: "US Dollar / Norwegian Krone", p: 10.58, d: 0.00 }
+            ]
+        };
+
+        const mutualFundTypes = [
+            { t: "Aggressive Growth", d: "Small-cap focus for maximum potential growth with higher volatility markers.", icon: "fa-rocket" },
+            { t: "Balanced Allocation", d: "The classic 60/40 mix of stocks and bonds for steady mid-term wealth building.", icon: "fa-balance-scale" },
+            { t: "Fixed Income", d: "Bond-heavy funds focused on yield preservation and capital protection.", icon: "fa-shield-halved" },
+            { t: "Mid-Cap Growth", d: "Investing in the $2B-$10B market cap range for moderate stability and scalability.", icon: "fa-chart-area" },
+            { t: "Dividend Aristocrats", d: "Large-cap focus on established giants with 25+ years of rising payouts.", icon: "fa-crown" },
+            { t: "Global Exposure", d: "Diversified international equity funds capturing emerging market shifts.", icon: "fa-globe" }
+        ];
+
+        function formatCurrency(val, key) {
+            if (key === 'cash') return val.toFixed(4);
+            return val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function renderContent() {
+            const container = document.getElementById('content-container');
+            let sectionsHtml = '';
+
+            for (const [key, assets] of Object.entries(assetData)) {
+                sectionsHtml += `
+                    <section id="${key}" class="mb-20 scroll-mt-24">
+                        <div class="flex items-end justify-between mb-8">
+                            <div>
+                                <h2 class="text-2xl font-extrabold text-slate-900 capitalize tracking-tight">${key}</h2>
+                                <p class="text-sm text-slate-400 font-medium">Market sector assets</p>
+                            </div>
+                            <span class="bg-slate-100 text-slate-500 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">${assets.length} Assets</span>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-5">
+                            ${assets.map(asset => `
+                                <div class="asset-card card-gradient group p-6 rounded-3xl border border-slate-200 cursor-default">
+                                    <div class="flex items-center justify-between mb-5">
+                                        <span class="text-[10px] font-black text-revolut-blue bg-blue-50 px-2 py-1 rounded-lg uppercase tracking-tight">${asset.s}</span>
+                                        <div class="flex flex-col items-end">
+                                            <span class="text-xs font-bold text-slate-900">$${formatCurrency(asset.p, key)}</span>
+                                            <span class="text-[9px] text-slate-400 font-bold uppercase">Price</span>
+                                        </div>
+                                    </div>
+                                    <div class="text-base font-bold text-slate-800 line-clamp-1 mb-4">${asset.n}</div>
+                                    
+                                    <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                                        <div class="flex flex-col">
+                                            <span class="text-xs font-bold ${asset.d > 0 ? 'text-green-600' : 'text-slate-400'}">${asset.d > 0 ? asset.d.toFixed(2) + '%' : '—'}</span>
+                                            <span class="text-[9px] text-slate-400 font-bold uppercase">Div Yield</span>
+                                        </div>
+                                        <div class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-300 group-hover:text-revolut-blue transition-colors">
+                                            <i class="fas fa-chevron-right text-[10px]"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </section>
+                `;
+            }
+            container.innerHTML = sectionsHtml;
+
+            const fundContainer = document.getElementById('funds-container');
+            fundContainer.innerHTML = mutualFundTypes.map(fund => `
+                <div class="bg-white border border-slate-200 p-8 rounded-[32px] hover:border-blue-300 transition-all duration-300 shadow-sm hover:shadow-md">
+                    <div class="w-14 h-14 bg-blue-50 text-revolut-blue rounded-2xl flex items-center justify-center mb-6">
+                        <i class="fas ${fund.icon} text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-900 mb-3">${fund.t}</h3>
+                    <p class="text-slate-500 leading-relaxed text-sm font-medium">${fund.d}</p>
+                </div>
+            `).join('');
+        }
+
+        function filterAssets() {
+            const filter = (document.getElementById('assetSearch').value || 
+                           (document.querySelector('#mobileSearch input')?.value || "")).toUpperCase();
+            
+            const cards = document.querySelectorAll('.asset-card');
+            
+            cards.forEach(card => {
+                const text = card.textContent.toUpperCase();
+                card.closest('div').style.display = text.includes(filter) ? "" : "none";
+            });
+
+            document.querySelectorAll('#content-container section').forEach(section => {
+                const hasVisible = Array.from(section.querySelectorAll('.asset-card')).some(c => c.closest('div').style.display !== "none");
+                section.style.display = hasVisible ? "" : "none";
+            });
+        }
+
+        function toggleMobileSearch() {
+            const search = document.getElementById('mobileSearch');
+            search.classList.toggle('hidden');
+        }
+
+        function setActive(el) {
+            document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        window.addEventListener('scroll', () => {
+            const sections = document.querySelectorAll('section');
+            let current = "";
+            sections.forEach(s => { if (pageYOffset >= s.offsetTop - 200) current = s.getAttribute('id'); });
+            if (current) {
+                document.querySelectorAll('.sidebar-link').forEach(l => {
+                    l.classList.toggle('active', l.getAttribute('href') === `#${current}`);
+                });
+            }
+        });
+
+        window.onload = renderContent;
+    </script>
+</body>
+</html>

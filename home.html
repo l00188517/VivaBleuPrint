@@ -1,0 +1,880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PathFinder | Discover Your Career</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            overflow-x: hidden;
+            background: #f8fafc;
+        }
+
+        .bg-mesh {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background-color: #f8fafc;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(79, 70, 229, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(236, 72, 153, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+                radial-gradient(at 0% 100%, rgba(168, 85, 247, 0.1) 0px, transparent 50%);
+        }
+
+        .step-container {
+            display: none;
+            animation: slideUpFade 0.6s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+        }
+
+        .step-container.active {
+            display: block;
+        }
+
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .progress-bar-fill {
+            transition: width 0.6s cubic-bezier(0.65, 0, 0.35, 1);
+            background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+        }
+
+        .option-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .option-card:hover {
+            transform: scale(1.01) translateY(-2px);
+        }
+
+        .option-card.selected {
+            border-color: #6366f1;
+            background-color: #f5f3ff;
+            box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+        }
+
+        .floating {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .loader {
+            border-top-color: #6366f1;
+            animation: spinner 0.8s linear infinite;
+        }
+
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .btn-vibrant {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            transition: all 0.3s ease;
+        }
+
+        .btn-vibrant:hover {
+            filter: brightness(1.1);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-vibrant:disabled {
+            filter: grayscale(1);
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+    </style>
+</head>
+<body class="text-slate-900 selection:bg-indigo-100">
+    <div class="bg-mesh"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 w-full h-16 bg-white/70 backdrop-blur-xl border-b border-white/20 z-50 flex items-center justify-between px-6">
+        <button class="flex items-center gap-2 font-black text-2xl tracking-tighter text-indigo-600 cursor-pointer" onclick="location.reload()">
+            <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200">
+                <i class="fa-solid fa-rocket text-sm"></i>
+            </div>
+            <span>Viva Bleuprint</span>
+        </button>
+        <div id="quiz-progress" class="hidden flex items-center gap-4">
+            <div class="w-24 md:w-48 h-2.5 bg-slate-200/50 rounded-full overflow-hidden">
+                <div id="progress-fill" class="progress-bar-fill h-full" style="width: 0%"></div>
+            </div>
+            <span id="progress-text" class="text-xs font-bold text-slate-500 uppercase tracking-widest">1/3</span>
+        </div>
+    </nav>
+
+    <main class="pt-16 max-w-2xl mx-auto px-6 flex flex-col items-center justify-center min-h-[calc(100vh-64px)]">
+        
+        <!-- Step 1: Landing -->
+        <section id="step-landing" class="step-container active text-center space-y-10 py-12">
+            <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 border border-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm mb-4 floating">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+                Over 50,000 students found their path
+            </div>
+            <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] text-slate-900">
+                Design your <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">dream life.</span>
+            </h1>
+            <p class="text-xl text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
+                The most fun way to find a career path that actually fits your vibe and personality.
+            </p>
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 mb-8">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                </span>
+                <span class="text-[10px] font-black tracking-widest uppercase">The RIASEC model or Holland Codes.</span>
+            </div>
+            <button onclick="startOnboarding(0)" class="btn-vibrant w-full sm:w-auto px-10 py-5 text-white rounded-2xl font-extrabold text-xl shadow-2xl flex items-center justify-center gap-3">
+                Get Started
+                <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+            </button>
+
+            <div class="grid grid-cols-3 gap-6 pt-12">
+                <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-bolt text-amber-500 text-xl"></i>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">Fast Results</span>
+                </div>
+                <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-brain text-purple-500 text-xl"></i>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">AI Powered</span>
+                </div>
+                <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
+                    <i class="fa-solid fa-graduation-cap text-blue-500 text-xl"></i>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">Expert Picks</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 2: Onboarding -->
+        <section id="step-onboarding" class="step-container text-center space-y-10 py-12">
+            <div class="max-w-xl mx-auto glass-card rounded-[3rem] p-12 shadow-2xl">
+                <div class="w-20 h-20 bg-indigo-600 rounded-3xl flex items-center justify-center mb-10 text-white shadow-xl shadow-indigo-100 -rotate-3">
+                    <i class="fa-solid fa-wand-magic-sparkles text-3xl"></i>
+                </div>
+                <h2 class="text-4xl font-extrabold text-gray-900 mb-6 leading-tight">Let's build your psychological profile</h2>
+                <p class="text-gray-500 mb-10 text-lg leading-relaxed">We use the globally recognized RIASEC model to map your interests across six dimensions. There are no wrong answers—only insights.</p>
+                
+                <div class="space-y-6 mb-12">
+                    <div id="q0" class="flex items-start gap-5 p-6 rounded-[2rem] bg-indigo-50/50 border border-indigo-100">
+                        <div class="w-10 h-10 shrink-0 rounded-full bg-white text-indigo-600 flex items-center justify-center font-black shadow-sm">1</div>
+                        <p class="font-bold text-gray-800 leading-snug pt-2">Answer 3 background questions.</p>
+                    </div>
+                    <div id="q1" class="flex items-start gap-5 p-6 rounded-[2rem] bg-white/50 border border-gray-100">
+                        <div class="w-10 h-10 shrink-0 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center font-black">2</div>
+                        <p class="font-bold text-gray-400 leading-snug pt-2">Answer 18 behavioral questions focused on your natural instincts.</p>
+                    </div>
+                    <div id="q3" class="flex items-start gap-5 p-6 rounded-[2rem] bg-white/50 border border-gray-100">
+                        <div class="w-10 h-10 shrink-0 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center font-black">2</div>
+                        <p class="font-bold text-gray-400 leading-snug pt-2">Receive a deep-dive analysis of your primary career archetypes.</p>
+                    </div>
+                </div>
+
+                <button onclick="startQuiz()" class="w-full bg-indigo-600 text-white py-6 rounded-2xl font-bold text-xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100">
+                    Get Started
+                </button>
+            </div>
+        </section>
+
+        <!-- Step 2: Quiz -->
+        <section id="step-quiz" class="step-container w-full py-12">
+            <div class="space-y-8">
+                <div class="space-y-3">
+                    <h2 id="question-title" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">Question?</h2>
+                    <p id="question-subtitle" class="text-slate-500 text-xl font-medium">Subtitle</p>
+                    <div id="type-badge" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Select Multiple</div>
+                </div>
+
+                <!-- Card Layout (Single/Multi) -->
+                <div id="options-grid" class="grid gap-4">
+                    <!-- Options injected via JS -->
+                </div>
+
+                <!-- Scale Layout (Rating 1-5) -->
+                <div id="scale-container" class="hidden grid gap-5">
+                    <!--<div class="flex justify-between items-end px-2">
+                        <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Not at all</span>
+                        <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Extremely</span>
+                    </div>
+                    <div class="relative flex justify-between items-center px-4">
+                        <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 rounded-full z-0"></div>
+                        <button onclick="handleScale(1)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">1</button>
+                        <button onclick="handleScale(2)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">2</button>
+                        <button onclick="handleScale(3)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">3</button>
+                        <button onclick="handleScale(4)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">4</button>
+                        <button onclick="handleScale(5)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">5</button>
+                    </div>-->
+                    <div class="grid grid-cols-1 gap-4 mb-8">
+                        <button onclick="handleScale(5)" class="choice-btn group p-7 rounded-[2rem] border-2 border-gray-50 bg-white hover:border-indigo-600 hover:bg-indigo-50/50 text-left">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity">Level 5</p>
+                                    <span class="text-lg font-bold text-gray-700 group-hover:text-indigo-900">Strongly Agree</span>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </button>
+                        <button onclick="handleScale(4)" class="choice-btn group p-7 rounded-[2rem] border-2 border-gray-50 bg-white hover:border-indigo-600 hover:bg-indigo-50/50 text-left">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity">Level 4</p>
+                                    <span class="text-lg font-bold text-gray-700 group-hover:text-indigo-900">Agree</span>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </button>
+                        <button onclick="handleScale(3)" class="choice-btn group p-7 rounded-[2rem] border-2 border-gray-50 bg-white hover:border-indigo-600 hover:bg-indigo-50/50 text-left">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity">Level 3</p>
+                                    <span class="text-lg font-bold text-gray-700 group-hover:text-indigo-900">Neutral</span>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </button>
+                        <button onclick="handleScale(2)" class="choice-btn group p-7 rounded-[2rem] border-2 border-gray-50 bg-white hover:border-indigo-600 hover:bg-indigo-50/50 text-left">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity">Level 2</p>
+                                    <span class="text-lg font-bold text-gray-700 group-hover:text-indigo-900">Disagree</span>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </button>
+                        <button onclick="handleScale(1)" class="choice-btn group p-7 rounded-[2rem] border-2 border-gray-50 bg-white hover:border-indigo-600 hover:bg-indigo-50/50 text-left">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-1 opacity-0 group-hover:opacity-100 transition-opacity">Level 1</p>
+                                    <span class="text-lg font-bold text-gray-700 group-hover:text-indigo-900">Strongly Disagree</span>
+                                </div>
+                                <div class="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+                                    <i class="fa-solid fa-arrow-right"></i>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4">
+                    <button id="back-btn" onclick="prevQuestion()" class="flex items-center gap-2 text-slate-400 hover:text-indigo-600 font-bold transition-all px-4 py-2 rounded-xl hover:bg-white">
+                        <i class="fa-solid fa-arrow-left text-sm"></i>
+                        Previous
+                    </button>
+                    <button id="next-btn" onclick="goToNextStep()" class="hidden btn-vibrant px-8 py-4 text-white rounded-2xl font-bold flex items-center gap-2">
+                        Continue
+                        <i class="fa-solid fa-chevron-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Step 3: Calculating -->
+        <section id="step-calculating" class="step-container text-center space-y-10">
+            <div class="relative w-32 h-32 mx-auto">
+                <div class="loader ease-linear rounded-full border-4 border-t-4 border-slate-200 h-32 w-32"></div>
+                <div class="absolute inset-0 flex items-center justify-center">
+                    <i class="fa-solid fa-compass text-indigo-600 text-4xl floating"></i>
+                </div>
+            </div>
+            <div class="space-y-3">
+                <h2 class="text-3xl font-black text-slate-900">Curating your future...</h2>
+                <div class="flex justify-center gap-1">
+                    <div class="w-2 h-2 bg-indigo-500 rounded-full animate-bounce"></div>
+                    <div class="w-2 h-2 bg-purple-500 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                    <div class="w-2 h-2 bg-pink-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                </div>
+                <p class="text-slate-500 animate-pulse italic">Mapping your skills to 400+ career paths</p>
+            </div>
+        </section>
+
+        <!-- Step 4: Result -->
+        <section id="step-result" class="step-container w-full">
+            <div class="bg-white/80 backdrop-blur-2xl rounded-[3rem] p-10 md:p-14 shadow-2xl border border-white text-center space-y-10 relative overflow-hidden">
+                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3">
+                    <i id="result-icon" class="fa-solid fa-briefcase text-4xl"></i>
+                </div>
+                <!-- Career Info -->
+                <div class="space-y-4">
+                    <div class="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest">Your Match</div>
+                    <h2 id="result-title" class="text-4xl md:text-5xl font-black text-slate-900">Career Title</h2>
+                    <p id="result-desc" class="text-slate-500 text-lg font-medium max-w-sm mx-auto leading-relaxed"></p>
+                </div>
+
+                <!-- Market Value -->
+                <div class="grid grid-cols-2 gap-6 pt-4">
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-2">Market Demand</span>
+                        <span class="font-extrabold text-slate-800 text-lg">9.2% Growth</span>
+                    </div>
+                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
+                        <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest block mb-2">Salary Expect.</span>
+                        <span class="font-extrabold text-slate-800 text-lg">$85k - $120k</span>
+                    </div>
+                </div>
+
+                <!-- Last Question and RoadMap -->
+                <div class="space-y-6 pt-6">
+                   
+                    <div id="last-question" class="space-y-8 bg-amber-50 rounded-lg">
+                        <div class="space-y-3">
+                            <div id="type-badged" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[15px] font-black uppercase tracking-widest">To claim your road map, answer this last question.</div>
+                            <h2 id="question-titled" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">How helpful was this recommendation?</h2>
+                            <!--<p id="question-subtitled" class="text-slate-500 text-xl font-medium">Subtitle</p>-->
+                        </div>
+                        <!-- Scale Layout (Rating 1-5) -->
+                        <div id="scale-containerd" class="py-8 space-y-12">
+                            <div class="flex justify-between items-end px-2">
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Not at all</span>
+                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Extremely</span>
+                            </div>
+                            <div class="relative flex justify-between items-center px-4">
+                                <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 rounded-full z-0"></div>
+                                <button onclick="showRoadMap(1)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">1</button>
+                                <button onclick="showRoadMap(2)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">2</button>
+                                <button onclick="showRoadMap(3)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">3</button>
+                                <button onclick="showRoadMap(4)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">4</button>
+                                <button onclick="showRoadMap(5)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">5</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- RoadMap -->
+                    <div id="roadmap" class="hidden">
+                        <button class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
+                            Claim Your Roadmap
+                            <i class="fa-solid fa-star"></i>
+                        </button>
+    
+                        <button onclick="location.reload()" class="w-full py-2 text-slate-400 font-bold hover:text-slate-600 transition-colors uppercase text-xs tracking-widest">
+                            Start Over
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="py-12 px-6 border-t border-slate-200 bg-white">
+        <div class="max-w-4xl mx-auto text-center space-y-6">
+            <div class="pt-8 text-xs text-slate-400 space-x-4">
+                <a href="#" class="hover:text-indigo-600">Privacy Policy</a>
+                <span>•</span>
+                <a href="#" class="hover:text-indigo-600">Terms of Service</a>
+                <span>•</span>
+                <a href="#" class="hover:text-indigo-600">Contact Us</a>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        /**
+         * Logic Definitions
+         * - 'type': 'single', 'multi', or 'scale'
+         * - 'condition': function that returns true if question should be shown
+         */
+        const questions = [
+            // --- SECTION 1: PROFILE INFORMATION ---
+            {
+                id: 'current_situation',
+                type: 'single',
+                question: "What best describes your current situation?",
+                subtitle: "",
+                options: [
+                    { id: 'student', label: 'Student', score: { student: 1, professional: 0, break: 0 } },
+                    { id: 'professional', label: 'Professional', score: { student: 0, professional: 1, break: 0 } },
+                    { id: 'career_break', label: 'Career Break', score: { student: 0, professional: 0, break: 1 } }
+                ]
+            },
+            {
+                id: 'education',
+                type: 'single',
+                question: "What's your level of education?",
+                subtitle: "",
+                options: [
+                    { id: 'secondary', label: 'Secondary', score: { secondary: 1, bachelor: 0, master: 0, phd: 0 } },
+                    { id: 'bachelor', label: 'Bachelor', score: { secondary: 0, bachelor: 1, master: 0, phd: 0 } },
+                    { id: 'master', label: 'Master', score: { secondary: 0, bachelor: 0, master: 1, phd: 0 } },
+                    { id: 'phd', label: 'PhD', score: { secondary: 0, bachelor: 0, master: 0, phd: 1 } }
+                ]
+            },
+            {
+                id: 'interests',
+                type: 'single',
+                question: "What best describes your key interests?",
+                subtitle: "",
+                options: [
+                    { id: 'tech', label: 'Tech', score: { tech: 1, health: 0, art: 0, business: 0, science: 0 } },
+                    { id: 'health', label: 'Health', score: { tech: 0, health: 1, art: 0, business: 0, science: 0 } },
+                    { id: 'art', label: 'Art', score: { tech: 0, health: 0, art: 1, business: 0, science: 0 } },
+                    { id: 'business', label: 'Business', score: { tech: 0, health: 0, art: 0, business: 1, science: 0 } },
+                    { id: 'science', label: 'Science', score: { tech: 0, health: 0, art: 0, business: 0, science: 1 } }
+                ]
+            }/*,
+            {
+                id: 'values_scale',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "How important are the following to you?",
+                subtitle: "",
+                items: [
+                    { id: 'income', label: 'High income' },
+                    { id: 'balance', label: 'Work-life balance' },
+                    { id: 'advancement', label: 'Career advancement' },
+                    { id: 'purpose', label: 'Purpose / impact' },
+                    { id: 'creativity_val', label: 'Creativity' },
+                    { id: 'stability_val', label: 'Stability' }
+                ]
+            }*/
+        ];
+
+        const questionsPart2 = [
+            {
+                id: 'values_scale',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Install drywall or flooring in a new house.",
+                subtitle: "Dimension:R",
+                score: { ["R"]: 1 }
+            },
+            {
+                id: 'values',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Repair damaged mechanical equipment.",
+                subtitle: "Dimension:R",
+                score: { ["R"]: 1 }
+            },
+            {
+                id: 'values',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Operate heavy machinery.",
+                subtitle: "Dimension:R",
+                score: { ["R"]: 1 }
+            },
+            {
+                id: 'values',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Analyze data using statistics.",
+                subtitle: "Dimension:I",
+                score: { ["I"]: 1 }
+            },
+            {
+                id: 'values',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Research scientific phenomena.",
+                subtitle: "Dimension:I",
+                score: { ["I"]: 1 }
+            },
+            {
+                id: 'values',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Investigate climate change.",
+                subtitle: "Dimension:I",
+                score: { ["I"]: 1 }
+            },
+            {
+                id: 'values',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Create original art for a gallery.",
+                subtitle: "Dimension:A",
+                score: { ["A"]: 1 }
+            }
+        ];
+        const questionsPart3 = [
+            { text: "I enjoy building things or fixing mechanical objects.", type: "Realistic" },
+            { text: "I like to understand how the physical world works through science.", type: "Investigative" },
+            { text: "I express myself through creative writing, music, or art.", type: "Artistic" },
+            { text: "I feel fulfilled when I'm helping or teaching others.", type: "Social" },
+            { text: "I enjoy leading a team to achieve a business goal.", type: "Enterprising" },
+            { text: "I prefer working with clear rules and organized data.", type: "Conventional" },
+            { text: "Working outdoors with my hands sounds like a great day.", type: "Realistic" },
+            { text: "I love solving complex puzzles and technical problems.", type: "Investigative" },
+            { text: "I prefer working in environments that are unstructured and creative.", type: "Artistic" },
+            { text: "I am often the person my friends come to for advice.", type: "Social" },
+            { text: "I like to persuade people to see things from my point of view.", type: "Enterprising" },
+            { text: "I am very detail-oriented and like keeping things orderly.", type: "Conventional" }
+        ];
+
+        const profiles = {
+            "R": { title: "Realistic (The Doers)", icon: "fa-hammer", color: "bg-orange-600", lightColor: "bg-orange-50", text: "text-orange-600", desc: "You prefer hands-on work and practical solutions.", jobs: ["Engineer", "Technician", "Skilled Trades", "Architect"] },
+            "I": { title: "Investigative (The Thinkers)", icon: "fa-microscope", color: "bg-blue-600", lightColor: "bg-blue-50", text: "text-blue-600", desc: "You are analytical and naturally curious.", jobs: ["Scientist", "Data Analyst", "Researcher", "Software Developer"] },
+            "A": { title: "Artistic (The Creators)", icon: "fa-palette", color: "bg-pink-500", lightColor: "bg-pink-50", text: "text-pink-500", desc: "You value self-expression and creativity.", jobs: ["Designer", "Writer", "Artist", "UX Designer"] },
+            "S": { title: "Social (The Helpers)", icon: "fa-people-group", color: "bg-emerald-500", lightColor: "bg-emerald-50", text: "text-emerald-500", desc: "You are driven by helping and teaching others.", jobs: ["Teacher", "Counselor", "Healthcare", "HR Specialist"] },
+            "E": { title: "Enterprising (The Persuaders)", icon: "fa-chart-line", color: "bg-indigo-600", lightColor: "bg-indigo-50", text: "text-indigo-600", desc: "You enjoy leadership and business management.", jobs: ["Entrepreneur", "Sales", "Manager", "Marketing Director"] },
+            "C": { title: "Conventional (The Organizers)", icon: "fa-table", color: "bg-slate-700", lightColor: "bg-slate-50", text: "text-slate-700", desc: "You value order, accuracy, and structure.", jobs: ["Accountant", "Auditor", "Admin", "Project Coordinator"] }
+        };
+
+        const paths = {
+            tech: { title: "Software Engineer", desc: "You're destined to build the infrastructure of the next internet generation.", icon: "fa-code", color: "bg-indigo-600" },
+            design: { title: "Product Designer", desc: "You have the rare gift of making the world more beautiful and usable.", icon: "fa-palette", color: "bg-pink-600" },
+            data: { title: "AI/Data Scientist", desc: "You turn messy noise into clear, actionable signals.", icon: "fa-microchip", color: "bg-emerald-600" },
+            health: { title: "HealthTech Specialist", desc: "Combining care with innovation to save lives.", icon: "fa-heart-pulse", color: "bg-red-500" },
+            marketing: { title: "Growth Specialist", desc: "Mastering the art of attention and human behavior.", icon: "fa-bolt", color: "bg-amber-500" },
+            business: { title: "Venture Lead", desc: "Scaling ideas and leading high-impact teams.", icon: "fa-briefcase", color: "bg-purple-600" }
+        };
+
+        let activeQuestionIndex = 0;
+        let userAnswers = {}; // Map of question ID to selected option(s)
+        let visibleQuestions = [];
+        let sectionOfQuestions = 0; // The part of question in view (background, RIASEC etc..)
+
+        function showStep(id) {
+            document.querySelectorAll('.step-container').forEach(step => step.classList.remove('active'));
+            document.getElementById(`step-${id}`).classList.add('active');
+            document.getElementById('quiz-progress').style.display = id === 'quiz' ? 'flex' : 'none';
+        }
+
+        function startOnboarding(section) {
+
+            // 1. Reset all steps (q0, q1, q2) to inactive state
+            const steps = ['q0', 'q1', 'q3'];
+
+            steps.forEach(id => {
+                const el = document.getElementById(id);
+                const numberCircle = el.querySelector('div');
+                const text = el.querySelector('p');
+
+                // Reset container to white/gray
+                el.classList.remove('bg-indigo-50/50', 'border-indigo-100');
+                el.classList.add('bg-white/50', 'border-gray-100');
+
+                // Reset nested elements to faded gray
+                numberCircle.classList.remove('bg-white', 'text-indigo-600');
+                numberCircle.classList.add('bg-gray-100', 'text-gray-400');
+                
+                text.classList.remove('text-gray-800');
+                text.classList.add('text-gray-400');
+            });
+            // Select the category element
+            const category = document.getElementById(`q${section}`);
+
+            // 1. Remove the inactive styles
+            category.classList.remove('bg-white/50', 'border-gray-100');
+
+            // 2. Add the requested active styles
+            category.classList.add('bg-indigo-50/50', 'border-indigo-100');
+
+            // 3. (Optional) Update the nested number and text colors to match the active state
+            const numberCircle = category.querySelector('div');
+            const text = category.querySelector('p');
+            
+            numberCircle.classList.replace('bg-gray-100', 'bg-white');
+            numberCircle.classList.replace('text-gray-400', 'text-indigo-600');
+            text.classList.replace('text-gray-400', 'text-gray-800');
+            
+
+            // Proceed with showing the step
+            showStep('onboarding');
+        }
+
+
+        /*function startQuiz() {
+            userAnswers = {};
+            calculateVisibleQuestions();
+            activeQuestionIndex = 0;
+            showStep('quiz');
+            renderQuestion();
+        }*/
+
+        function startQuiz() {
+            userAnswers = {};
+            /*/ Check which sequence we are in to load the correct question set
+            if (sectionOfQuestions === 1) {
+                // Map questionsPart2 to the format the renderer expects
+                visibleQuestions = questionsPart2.map((q, index) => ({
+                    id: `riasec_${index}`,
+                    type: 'scale',
+                    question: q.text,
+                    subtitle: `Dimension: ${q.type}`,
+                    score: { [q.type.toLowerCase()]: 1 }
+                }));
+                
+            } else {
+                console.log("Done")
+                calculateVisibleQuestions();
+            }*/
+            calculateVisibleQuestions();
+            activeQuestionIndex = 0;
+            showStep('quiz');
+            renderQuestion();
+            }
+
+        function calculateVisibleQuestions() {
+            if (sectionOfQuestions === 0) {
+                visibleQuestions = questions.filter(q => !q.condition || q.condition(userAnswers));
+            }else{
+                visibleQuestions = questionsPart2.filter(q => !q.condition || q.condition(userAnswers));
+            }
+            
+        }
+
+        function renderQuestion() {
+            const q = visibleQuestions[activeQuestionIndex];
+            
+            // If we run out of background questions, go to RIASEC onboarding
+            if (!q && sectionOfQuestions === 0) {
+                sectionOfQuestions = 1;
+                return startOnboarding(sectionOfQuestions);
+            }
+            
+            // If we run out of RIASEC questions, process results
+            if (!q && sectionOfQuestions === 1) {
+                return processResults();
+            }
+
+            document.getElementById('question-title').innerText = q.question;
+            document.getElementById('question-subtitle').innerText = q.subtitle;
+            
+            const badge = document.getElementById('type-badge');
+            if(q.type === 'single'){
+                badge.innerText = 'Select One';
+            }else if (q.type === 'multi'){
+                badge.innerText = 'Select Multiple';
+            }else{
+                badge.innerText = 'Rate Experience';
+            }
+            
+
+            // Progress Update
+            const progress = ((activeQuestionIndex + 1) / visibleQuestions.length) * 100;
+            document.getElementById('progress-fill').style.width = `${progress}%`;
+            document.getElementById('progress-text').innerText = `${activeQuestionIndex + 1}/${visibleQuestions.length}`;
+
+            const grid = document.getElementById('options-grid');
+            const scale = document.getElementById('scale-container');
+            
+            if (q.type === 'scale') {
+                grid.classList.add('hidden');
+                scale.classList.remove('hidden');
+                updateScaleUI(userAnswers[q.id]);
+            } else {
+                grid.classList.remove('hidden');
+                scale.classList.add('hidden');
+                grid.innerHTML = '';
+
+                const currentSelection = userAnswers[q.id] || (q.type === 'multi' ? [] : null);
+
+                q.options.forEach((opt) => {
+                    const isSelected = q.type === 'multi' 
+                        ? currentSelection.some(s => s.id === opt.id)
+                        : currentSelection?.id === opt.id;
+
+                    const btn = document.createElement('button');
+                    btn.className = `option-card flex items-center gap-5 p-6 bg-white border border-slate-100 rounded-3xl text-left group ${isSelected ? 'selected' : ''}`;
+                    
+                    btn.onclick = () => handleSelect(q, opt);
+                    if(q.type === 'multi'){
+                        btn.innerHTML = `
+                            <!--<div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center ${opt.color} group-hover:bg-white transition-colors text-xl shadow-inner">
+                                <i class="fa-solid fa-terminal ${opt.icon}"></i>
+                            </div>-->
+                            <div class="flex-1">
+                                <span class="text-lg font-bold text-slate-700 leading-tight">${opt.label}</span>
+                            </div>
+                            <div class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600' : ''}">
+                                ${isSelected ? '<i class="fa-solid fa-check text-white text-[10px]"></i>' : ''}
+                            </div>
+                        `;
+                    }else{
+                        btn.innerHTML = `
+                            <!--<div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center ${opt.color} group-hover:bg-white transition-colors text-xl shadow-inner">
+                                <i class="fa-solid fa-terminal ${opt.icon}"></i>
+                            </div>-->
+                            <div class="flex-1">
+                                <span class="text-lg font-bold text-slate-700 leading-tight">${opt.label}</span>
+                            </div>
+                            <!--<div class="w-6 h-6 rounded-full border-2 border-slate-200 flex items-center justify-center transition-all ${isSelected ? 'bg-indigo-600 border-indigo-600' : ''}">
+                                ${isSelected ? '<i class="fa-solid fa-check text-white text-[10px]"></i>' : ''}
+                            </div>-->
+                        `;
+                    }
+                    
+                    grid.appendChild(btn);
+                });
+            }   
+
+            document.getElementById('back-btn').style.visibility = activeQuestionIndex > 0 ? 'visible' : 'hidden';
+
+            // Show Next btn for Multi or if Scale is already answered
+            const showNext = (q.type === 'multi' && userAnswers[q.id]?.length > 0);
+            document.getElementById('next-btn').classList.toggle('hidden', !showNext);
+        }
+
+        function handleSelect(question, option) {
+            if (question.type === 'single') {
+                userAnswers[question.id] = option;
+                calculateVisibleQuestions(); // Recalculate as visibility might change
+                activeQuestionIndex++;
+                renderQuestion();
+            } else {
+                // Multi select
+                if (!userAnswers[question.id]) userAnswers[question.id] = [];
+                const idx = userAnswers[question.id].findIndex(s => s.id === option.id);
+                if (idx > -1) {
+                    userAnswers[question.id].splice(idx, 1);
+                } else {
+                    userAnswers[question.id].push(option);
+                }
+                renderQuestion();
+            }
+        }
+
+        function handleScale(rating) {
+            const q = visibleQuestions[activeQuestionIndex];
+            userAnswers[q.id] = rating;
+            updateScaleUI(rating);
+            
+            // Auto-advance for scale after a short delay for feedback
+            setTimeout(() => {
+                goToNextStep();
+            }, 300);
+        }
+
+        function updateScaleUI(rating) {
+            document.querySelectorAll('.scale-dot').forEach((dot, idx) => {
+                dot.classList.toggle('active', (idx + 1) === rating);
+            });
+        }
+
+        function goToNextStep() {
+            activeQuestionIndex++;
+            calculateVisibleQuestions();
+            renderQuestion();
+        }
+
+        function prevQuestion() {
+            if (activeQuestionIndex > 0) {
+                activeQuestionIndex--;
+                renderQuestion();
+            }
+        }
+
+        /*function processResults() {
+            showStep('calculating');
+            
+            setTimeout(() => {
+                const totalScores = {};
+                
+                Object.entries(userAnswers).forEach(([qId, val]) => {
+                    const qDef = questions.find(q => q.id === qId);
+                    
+                    if (qDef.type === 'scale') {
+                        // Rating 1-5 multiplier
+                        Object.entries(qDef.score).forEach(([path, weight]) => {
+                            totalScores[path] = (totalScores[path] || 0) + (weight * val);
+                        });
+                    } else {
+                        const ansList = Array.isArray(val) ? val : [val];
+                        ansList.forEach(ans => {
+                            if (ans.score) {
+                                Object.entries(ans.score).forEach(([path, weight]) => {
+                                    totalScores[path] = (totalScores[path] || 0) + weight;
+                                });
+                            }
+                        });
+                    }
+                });
+
+                //const winner = Object.entries(totalScores).sort((a, b) => b[1] - a[1])[0]?.[0] || 'tech';
+                //const result = paths[winner];
+
+                const winnerKey = Object.entries(totalScores).sort((a, b) => b[1] - a[1])[0][0];
+                const result = paths[winnerKey] || paths['business'];
+
+                document.getElementById('result-title').innerText = result.title;
+                document.getElementById('result-desc').innerText = result.desc;
+                document.getElementById('result-icon').className = `fa-solid ${result.icon} text-4xl`;
+                document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 ${result.color}`;
+                
+                showStep('result');
+            }, 5000);
+        }*/
+
+        function processResults() {
+            showStep('calculating');
+            
+            setTimeout(() => {
+                const totalScores = {};
+                
+                Object.entries(userAnswers).forEach(([qId, val]) => {
+                    // FIX: Look in visibleQuestions so it finds questionsPart2 items too
+                    const qDef = visibleQuestions.find(q => q.id === qId) || questions.find(q => q.id === qId);
+                    
+                    if (!qDef) return; // Skip if definition isn't found
+
+                    if (qDef.type === 'scale') {
+                        // val is the rating (1-5)
+                        Object.entries(qDef.score).forEach(([category, weight]) => {
+                            totalScores[category] = (totalScores[category] || 0) + (weight * val);
+                        });
+                    } else {
+                        const ansList = Array.isArray(val) ? val : [val];
+                        ansList.forEach(ans => {
+                            if (ans.score) {
+                                Object.entries(ans.score).forEach(([path, weight]) => {
+                                    totalScores[path] = (totalScores[path] || 0) + weight;
+                                });
+                            }
+                        });
+                    }
+                });
+
+                // Determine winner
+                const scoreEntries = Object.entries(totalScores);
+                const winnerKey = scoreEntries.length > 0 
+                    ? scoreEntries.sort((a, b) => b[1] - a[1])[0][0] 
+                    : 'business';
+
+                // Map RIASEC results to your 'paths' object if necessary
+                // (Note: Your 'paths' keys are 'tech', 'health', etc., 
+                // but RIASEC types are 'realistic', 'social', etc.)
+                const result = paths[winnerKey] || paths['business'];
+
+                document.getElementById('result-title').innerText = result.title;
+                document.getElementById('result-desc').innerText = result.desc;
+                document.getElementById('result-icon').className = `fa-solid ${result.icon} text-4xl`;
+                document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 ${result.color}`;
+                
+                showStep('result');
+            }, 3000); // Reduced delay for better UX
+        }
+
+        function showRoadMap(rating) {
+
+            //const q = visibleQuestions[activeQuestionIndex];
+            userAnswers["last-question"] = rating;
+            updateScaleUI(rating);
+            
+            // Auto-advance for scale after a short delay for feedback
+            setTimeout(() => {
+                document.getElementById(`last-question`).classList.add('hidden');
+                document.getElementById(`roadmap`).classList.remove('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
+

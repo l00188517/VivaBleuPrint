@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FoundersHub | Startup Accelerator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --bg-primary: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --border-color: #e2e8f0;
+        }
+
+        .dark {
+            --bg-primary: #0f172a;
+            --card-bg: #1e293b;
+            --text-main: #f1f5f9;
+            --border-color: #334155;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .glass-card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .sidebar-item {
+            @apply flex items-center p-3 mb-2 rounded-lg cursor-pointer transition-all hover:bg-blue-500 hover:text-white;
+        }
+
+        .active-nav {
+            @apply bg-blue-600 text-white shadow-md;
+        }
+
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="transition-colors duration-300">
+
+    <!-- Auth Overlay -->
+    <div id="auth-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900 bg-opacity-90 backdrop-blur-sm">
+        <div class="glass-card p-8 w-full max-w-md mx-4">
+            <div class="text-center mb-8">
+                <div class="text-4xl font-bold text-blue-500 mb-2"><i class="fas fa-rocket mr-2"></i>FoundersHub</div>
+                <p class="text-slate-400">Your startup journey starts here.</p>
+            </div>
+            <div id="auth-form">
+                <input type="text" id="username" placeholder="Username" class="w-full p-3 mb-4 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 outline-none">
+                <input type="password" id="password" placeholder="Password" class="w-full p-3 mb-6 rounded bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 outline-none">
+                <button onclick="handleAuth()" class="w-full bg-blue-600 text-white p-3 rounded font-bold hover:bg-blue-700 transition">Enter Platform</button>
+                <p id="auth-msg" class="text-red-400 text-sm mt-4 text-center hidden"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Layout -->
+    <div id="app-container" class="hidden min-h-screen flex flex-col md:flex-row">
+        
+        <!-- Sidebar -->
+        <aside id="sidebar" class="w-full md:w-64 glass-card m-2 p-4 flex flex-col h-auto md:h-[calc(100vh-1rem)] overflow-y-auto no-scrollbar">
+            <div class="flex items-center justify-between mb-8 px-2">
+                <span class="text-xl font-bold text-blue-600">FoundersHub</span>
+                <button onclick="toggleTheme()" class="p-2 rounded-full bg-slate-100 dark:bg-slate-800">
+                    <i id="theme-icon" class="fas fa-moon"></i>
+                </button>
+            </div>
+
+            <nav class="flex-grow">
+                <div onclick="switchTab('dashboard')" id="nav-dashboard" class="sidebar-item active-nav"><i class="fas fa-chart-line mr-3"></i>Dashboard</div>
+                <div onclick="switchTab('vision')" id="nav-vision" class="sidebar-item"><i class="fas fa-eye mr-3"></i>Vision & Passion</div>
+                <div onclick="switchTab('ideas')" id="nav-ideas" class="sidebar-item"><i class="fas fa-lightbulb mr-3"></i>Startup Ideas</div>
+                <div onclick="switchTab('planning')" id="nav-planning" class="sidebar-item"><i class="fas fa-map mr-3"></i>Business Plan</div>
+                <div onclick="switchTab('founder-stats')" id="nav-founder-stats" class="sidebar-item"><i class="fas fa-user-gear mr-3"></i>Founder Resources</div>
+                <div onclick="switchTab('outreach')" id="nav-outreach" class="sidebar-item"><i class="fas fa-bullhorn mr-3"></i>Outreach & Pitch</div>
+                <div onclick="switchTab('leads')" id="nav-leads" class="sidebar-item"><i class="fas fa-users mr-3"></i>Leads & Clients</div>
+            </nav>
+
+            <div class="mt-auto border-t border-slate-200 dark:border-slate-700 pt-4">
+                <div class="flex items-center p-2 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-white font-bold mr-3" id="user-avatar">U</div>
+                    <div class="overflow-hidden">
+                        <p class="font-bold text-sm truncate" id="display-name">Founder</p>
+                        <p class="text-xs text-slate-500">Enterprise Edition</p>
+                    </div>
+                </div>
+                <button onclick="logout()" class="w-full p-2 text-sm text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition">Logout</button>
+            </div>
+        </aside>
+
+        <!-- Content Area -->
+        <main class="flex-grow p-2 md:p-4 overflow-y-auto h-screen no-scrollbar">
+            
+            <!-- Dashboard Tab -->
+            <section id="tab-dashboard" class="tab-content">
+                <h1 class="text-2xl font-bold mb-6">Founder Dashboard</h1>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="glass-card p-4">
+                        <p class="text-slate-500 text-sm">Freedom Level</p>
+                        <p id="stat-freedom" class="text-3xl font-bold text-green-500">0%</p>
+                        <div class="w-full bg-slate-200 dark:bg-slate-700 h-2 mt-2 rounded">
+                            <div id="stat-freedom-bar" class="bg-green-500 h-full rounded" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div class="glass-card p-4">
+                        <p class="text-slate-500 text-sm">Active Ideas</p>
+                        <p id="stat-ideas" class="text-3xl font-bold text-blue-500">0</p>
+                    </div>
+                    <div class="glass-card p-4">
+                        <p class="text-slate-500 text-sm">Conversion Rate</p>
+                        <p id="stat-conv" class="text-3xl font-bold text-purple-500">0%</p>
+                    </div>
+                    <div class="glass-card p-4">
+                        <p class="text-slate-500 text-sm">Secured Clients</p>
+                        <p id="stat-clients" class="text-3xl font-bold text-orange-500">0</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-6">
+                        <h3 class="font-bold mb-4">Pipeline Health</h3>
+                        <canvas id="pipelineChart" height="200"></canvas>
+                    </div>
+                    <div class="glass-card p-6">
+                        <h3 class="font-bold mb-4">Founder Resource Mix</h3>
+                        <canvas id="resourceChart" height="200"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Vision Tab -->
+            <section id="tab-vision" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Vision & Founder Passion</h1>
+                    <button onclick="saveVision()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Save Vision</button>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="glass-card p-6">
+                        <label class="block mb-2 font-bold">Company Vision Statement</label>
+                        <textarea id="vision-text" rows="4" class="w-full p-3 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" placeholder="Where do you see this company in 20 years?"></textarea>
+                        
+                        <label class="block mt-4 mb-2 font-bold">Founders Passion (Why?)</label>
+                        <textarea id="passion-text" rows="4" class="w-full p-3 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" placeholder="What keeps you waking up at 4 AM?"></textarea>
+                    </div>
+                    <div class="glass-card p-6">
+                        <h3 class="font-bold mb-4">Passion Metrics</h3>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="text-sm">Obsession Level</label>
+                                <input type="range" id="metric-obsession" oninput="saveVision()" class="w-full accent-blue-600">
+                            </div>
+                            <div>
+                                <label class="text-sm">Grit / Resilience</label>
+                                <input type="range" id="metric-grit" oninput="saveVision()" class="w-full accent-blue-600">
+                            </div>
+                            <div>
+                                <label class="text-sm">Market Opportunity Potential</label>
+                                <input type="range" id="metric-potential" oninput="saveVision()" class="w-full accent-blue-600">
+                            </div>
+                        </div>
+                        <div class="mt-8 h-[300px]">
+                            <canvas id="visionRadarChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Startup Ideas Tab -->
+            <section id="tab-ideas" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Idea Sandbox</h1>
+                    <button onclick="showNewIdeaModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ New Idea</button>
+                </div>
+                <div id="ideas-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+                <div class="mt-8 glass-card p-6 h-[200px]">
+                    <h3 class="font-bold mb-4">Idea Approval Rate Analysis</h3>
+                    <canvas id="ideaSuccessChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Planning Tab -->
+            <section id="tab-planning" class="tab-content hidden">
+                <h1 class="text-2xl font-bold mb-6">Horizon Planning</h1>
+                <div class="flex gap-2 mb-6 overflow-x-auto pb-2 no-scrollbar">
+                    <button onclick="switchHorizon('q')" id="btn-hq" class="px-4 py-2 rounded-full border border-blue-500 bg-blue-500 text-white">Quarter</button>
+                    <button onclick="switchHorizon('1y')" id="btn-h1" class="px-4 py-2 rounded-full border border-blue-500">1 Year</button>
+                    <button onclick="switchHorizon('3y')" id="btn-h3" class="px-4 py-2 rounded-full border border-blue-500">3 Year</button>
+                    <button onclick="switchHorizon('5y')" id="btn-h5" class="px-4 py-2 rounded-full border border-blue-500">5 Year</button>
+                    <button onclick="switchHorizon('10y')" id="btn-h10" class="px-4 py-2 rounded-full border border-blue-500">10 Year</button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="glass-card p-4 border-l-4 border-blue-500">
+                        <h4 class="font-bold mb-2 flex items-center"><i class="fas fa-hand-holding-usd mr-2"></i>Sales</h4>
+                        <textarea id="plan-sales" class="w-full text-sm p-2 bg-transparent border-none focus:ring-0 outline-none" placeholder="Sales strategy..."></textarea>
+                    </div>
+                    <div class="glass-card p-4 border-l-4 border-purple-500">
+                        <h4 class="font-bold mb-2 flex items-center"><i class="fas fa-headset mr-2"></i>Support</h4>
+                        <textarea id="plan-support" class="w-full text-sm p-2 bg-transparent border-none focus:ring-0 outline-none" placeholder="Customer success..."></textarea>
+                    </div>
+                    <div class="glass-card p-4 border-l-4 border-orange-500">
+                        <h4 class="font-bold mb-2 flex items-center"><i class="fas fa-cogs mr-2"></i>Engineering</h4>
+                        <textarea id="plan-engineering" class="w-full text-sm p-2 bg-transparent border-none focus:ring-0 outline-none" placeholder="Product dev..."></textarea>
+                    </div>
+                    <div class="glass-card p-4 border-l-4 border-pink-500">
+                        <h4 class="font-bold mb-2 flex items-center"><i class="fas fa-bullseye mr-2"></i>Marketing</h4>
+                        <textarea id="plan-marketing" class="w-full text-sm p-2 bg-transparent border-none focus:ring-0 outline-none" placeholder="Growth & Brand..."></textarea>
+                    </div>
+                    <div class="glass-card p-4 border-l-4 border-green-500">
+                        <h4 class="font-bold mb-2 flex items-center"><i class="fas fa-microchip mr-2"></i>Operations</h4>
+                        <textarea id="plan-operations" class="w-full text-sm p-2 bg-transparent border-none focus:ring-0 outline-none" placeholder="Systems & HR..."></textarea>
+                    </div>
+                    <div class="glass-card p-4 border-l-4 border-yellow-500">
+                        <h4 class="font-bold mb-2 flex items-center"><i class="fas fa-wallet mr-2"></i>Finance</h4>
+                        <textarea id="plan-finance" class="w-full text-sm p-2 bg-transparent border-none focus:ring-0 outline-none" placeholder="Runway & Revenue..."></textarea>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end">
+                    <button onclick="savePlan()" class="bg-blue-600 text-white px-6 py-2 rounded font-bold shadow-lg">Lock Strategy</button>
+                </div>
+            </section>
+
+            <!-- Founder Stats Tab -->
+            <section id="tab-founder-stats" class="tab-content hidden">
+                <h1 class="text-2xl font-bold mb-6">Founder Resource Management</h1>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-card p-6">
+                        <h3 class="font-bold mb-6">Current Availability</h3>
+                        <div class="space-y-6">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium">Energy Level</span>
+                                    <span id="label-energy">50%</span>
+                                </div>
+                                <input type="range" id="input-energy" oninput="updateFounderStats()" class="w-full accent-yellow-400">
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium">Time Level (Hours/Wk)</span>
+                                    <span id="label-time">40</span>
+                                </div>
+                                <input type="range" id="input-time" min="0" max="100" oninput="updateFounderStats()" class="w-full accent-blue-500">
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm font-medium">Money Level ($ Capital)</span>
+                                    <span id="label-money">$5k</span>
+                                </div>
+                                <input type="range" id="input-money" min="0" max="100000" step="1000" oninput="updateFounderStats()" class="w-full accent-green-500">
+                            </div>
+                        </div>
+                        <div class="mt-8 p-4 bg-slate-100 dark:bg-slate-800 rounded-lg text-center">
+                            <p class="text-xs uppercase tracking-widest text-slate-500 mb-1">Calculated Freedom Level</p>
+                            <h2 id="calc-freedom" class="text-4xl font-black text-blue-600">0%</h2>
+                        </div>
+                    </div>
+                    <div class="glass-card p-6">
+                        <h3 class="font-bold mb-4">Milestone Tracker (Moving Targets)</h3>
+                        <div id="milestone-list" class="space-y-3 max-h-64 overflow-y-auto pr-2"></div>
+                        <div class="mt-4 flex gap-2">
+                            <input type="text" id="milestone-input" placeholder="New milestone..." class="flex-grow p-2 rounded bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 outline-none">
+                            <button onclick="addMilestone()" class="bg-blue-600 text-white px-4 py-2 rounded"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Outreach Tab -->
+            <section id="tab-outreach" class="tab-content hidden">
+                <h1 class="text-2xl font-bold mb-6">Weekly Outreach Engine</h1>
+                <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-8 text-center">
+                    <div class="glass-card p-4">
+                        <h4 class="text-xs text-slate-500 uppercase">Weekly Outreach</h4>
+                        <p id="c-outreach" class="text-2xl font-bold">0</p>
+                        <div class="flex justify-center mt-2 gap-2">
+                            <button onclick="adjCount('outreach', -1)" class="w-6 h-6 rounded bg-slate-200 dark:bg-slate-700">-</button>
+                            <button onclick="adjCount('outreach', 1)" class="w-6 h-6 rounded bg-blue-500 text-white">+</button>
+                        </div>
+                    </div>
+                    <div class="glass-card p-4">
+                        <h4 class="text-xs text-slate-500 uppercase">Follow-ups</h4>
+                        <p id="c-followup" class="text-2xl font-bold">0</p>
+                        <div class="flex justify-center mt-2 gap-2">
+                            <button onclick="adjCount('followup', -1)" class="w-6 h-6 rounded bg-slate-200 dark:bg-slate-700">-</button>
+                            <button onclick="adjCount('followup', 1)" class="w-6 h-6 rounded bg-blue-500 text-white">+</button>
+                        </div>
+                    </div>
+                    <div class="glass-card p-4">
+                        <h4 class="text-xs text-slate-500 uppercase">Pitching</h4>
+                        <p id="c-pitch" class="text-2xl font-bold">0</p>
+                        <div class="flex justify-center mt-2 gap-2">
+                            <button onclick="adjCount('pitch', -1)" class="w-6 h-6 rounded bg-slate-200 dark:bg-slate-700">-</button>
+                            <button onclick="adjCount('pitch', 1)" class="w-6 h-6 rounded bg-blue-500 text-white">+</button>
+                        </div>
+                    </div>
+                    <div class="glass-card p-4">
+                        <h4 class="text-xs text-slate-500 uppercase">Convincing</h4>
+                        <p id="c-convince" class="text-2xl font-bold">0</p>
+                        <div class="flex justify-center mt-2 gap-2">
+                            <button onclick="adjCount('convince', -1)" class="w-6 h-6 rounded bg-slate-200 dark:bg-slate-700">-</button>
+                            <button onclick="adjCount('convince', 1)" class="w-6 h-6 rounded bg-blue-500 text-white">+</button>
+                        </div>
+                    </div>
+                    <div class="glass-card p-4">
+                        <h4 class="text-xs text-slate-500 uppercase">Chasing</h4>
+                        <p id="c-chase" class="text-2xl font-bold">0</p>
+                        <div class="flex justify-center mt-2 gap-2">
+                            <button onclick="adjCount('chase', -1)" class="w-6 h-6 rounded bg-slate-200 dark:bg-slate-700">-</button>
+                            <button onclick="adjCount('chase', 1)" class="w-6 h-6 rounded bg-blue-500 text-white">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="glass-card p-6 h-[300px]">
+                    <h3 class="font-bold mb-4">Outreach Activity Trend</h3>
+                    <canvas id="outreachChart"></canvas>
+                </div>
+            </section>
+
+            <!-- Leads Tab -->
+            <section id="tab-leads" class="tab-content hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h1 class="text-2xl font-bold">Lead Management</h1>
+                    <button onclick="showNewLeadModal()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Add Lead</button>
+                </div>
+                <div class="overflow-x-auto glass-card">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 dark:bg-slate-800 text-xs uppercase text-slate-500">
+                            <tr>
+                                <th class="p-4">Contact</th>
+                                <th class="p-4">Stage</th>
+                                <th class="p-4">Value</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 z- flex items-center justify-center bg-black/50 backdrop-blur-sm hidden">
+        <div id="modal-content" class="glass-card w-full max-w-lg p-6 m-4"></div>
+    </div>
+
+    <script>
+        // --- Core State & Database ---
+        let db;
+        let currentUser = null;
+        let appState = {
+            activeTab: 'dashboard',
+            activeHorizon: 'q',
+            outreach: { outreach: 0, followup: 0, pitch: 0, convince: 0, chase: 0 },
+            leads: [],
+            ideas: [],
+            milestones: [],
+            vision: { obsession: 50, grit: 50, potential: 50 },
+            plans: {},
+            resources: { energy: 50, time: 40, money: 5000 }
+        };
+
+        const chartInstances = {};
+
+        // --- IndexedDB Implementation ---
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open('FoundersHubDB', 1);
+                request.onerror = () => reject();
+                request.onupgradeneeded = (e) => {
+                    const db = e.target.result;
+                    if (!db.objectStoreNames.contains('data')) db.createObjectStore('data', { keyPath: 'userId' });
+                };
+                request.onsuccess = (e) => {
+                    db = e.target.result;
+                    resolve();
+                };
+            });
+        }
+
+        async function saveUserData() {
+            if (!currentUser || !db) return;
+            const tx = db.transaction('data', 'readwrite');
+            const store = tx.objectStore('data');
+            store.put({ userId: currentUser.id, ...appState });
+        }
+
+        async function loadUserData() {
+            return new Promise((resolve) => {
+                if (!db) return resolve();
+                const tx = db.transaction('data', 'readonly');
+                const store = tx.objectStore('data');
+                const request = store.get(currentUser.id);
+                request.onsuccess = (e) => {
+                    if (e.target.result) {
+                        appState = { ...appState, ...e.target.result };
+                    }
+                    resolve();
+                };
+            });
+        }
+
+        // --- Auth Handlers ---
+        async function handleAuth() {
+            const user = document.getElementById('username').value.trim();
+            const pass = document.getElementById('password').value;
+            const msg = document.getElementById('auth-msg');
+
+            if (!user || !pass) {
+                msg.innerText = "Please enter both fields.";
+                msg.classList.remove('hidden');
+                return;
+            }
+
+            currentUser = { id: user.toLowerCase(), name: user };
+            await loadUserData();
+            
+            document.getElementById('auth-overlay').classList.add('hidden');
+            document.getElementById('app-container').classList.remove('hidden');
+            document.getElementById('display-name').innerText = user;
+            document.getElementById('user-avatar').innerText = user.toUpperCase();
+            
+            renderAll();
+        }
+
+        function logout() {
+            location.reload();
+        }
+
+        // --- UI Logic ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            
+            document.querySelectorAll('.sidebar-item').forEach(el => el.classList.remove('active-nav'));
+            const navEl = document.getElementById(`nav-${tabId}`);
+            if (navEl) navEl.classList.add('active-nav');
+            
+            appState.activeTab = tabId;
+            renderCharts();
+        }
+
+        function toggleTheme() {
+            const isDark = document.body.classList.toggle('dark');
+            const icon = document.getElementById('theme-icon');
+            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            renderCharts();
+        }
+
+        function switchHorizon(horizon) {
+            appState.activeHorizon = horizon;
+            ['q', '1y', '3y', '5y', '10y'].forEach(h => {
+                const id = `btn-h${h === 'q' ? 'q' : h.replace('y','')}`;
+                const btn = document.getElementById(id);
+                if(btn) btn.classList.remove('bg-blue-500', 'text-white');
+            });
+            const activeId = `btn-h${horizon === 'q' ? 'q' : horizon.replace('y','')}`;
+            const activeBtn = document.getElementById(activeId);
+            if(activeBtn) activeBtn.classList.add('bg-blue-500', 'text-white');
+            loadPlanInputs();
+        }
+
+        // --- Feature Logics ---
+        function updateFounderStats() {
+            const e = parseInt(document.getElementById('input-energy').value);
+            const t = parseInt(document.getElementById('input-time').value);
+            const m = parseInt(document.getElementById('input-money').value);
+
+            appState.resources = { energy: e, time: t, money: m };
+            
+            document.getElementById('label-energy').innerText = `${e}%`;
+            document.getElementById('label-time').innerText = `${t} hrs/wk`;
+            document.getElementById('label-money').innerText = `$${(m/1000).toFixed(1)}k`;
+
+            const freedom = Math.floor((e * 0.3) + (t * 0.2) + ((m/100000)*100 * 0.5));
+            appState.freedom = freedom;
+            
+            document.getElementById('calc-freedom').innerText = `${freedom}%`;
+            document.getElementById('stat-freedom').innerText = `${freedom}%`;
+            document.getElementById('stat-freedom-bar').style.width = `${freedom}%`;
+            
+            saveUserData();
+            renderCharts();
+        }
+
+        function adjCount(type, val) {
+            appState.outreach[type] = Math.max(0, appState.outreach[type] + val);
+            renderOutreach();
+            saveUserData();
+        }
+
+        function renderOutreach() {
+            for (let k in appState.outreach) {
+                const el = document.getElementById(`c-${k}`);
+                if(el) el.innerText = appState.outreach[k];
+            }
+            renderCharts();
+        }
+
+        function addMilestone() {
+            const input = document.getElementById('milestone-input');
+            if(!input.value) return;
+            appState.milestones.push({ id: Date.now(), text: input.value, done: false });
+            input.value = '';
+            renderMilestones();
+            saveUserData();
+        }
+
+        function toggleMilestone(id) {
+            appState.milestones = appState.milestones.map(m => m.id === id ? {...m, done: !m.done} : m);
+            renderMilestones();
+            saveUserData();
+        }
+
+        function renderMilestones() {
+            const container = document.getElementById('milestone-list');
+            container.innerHTML = appState.milestones.map(m => `
+                <div class="flex items-center gap-3 p-2 rounded bg-slate-50 dark:bg-slate-800/50">
+                    <input type="checkbox" ${m.done ? 'checked' : ''} onchange="toggleMilestone(${m.id})" class="w-4 h-4">
+                    <span class="${m.done ? 'line-through text-slate-400' : ''}">${m.text}</span>
+                </div>
+            `).join('') || '<p class="text-center text-slate-500 py-4">No milestones set yet.</p>';
+        }
+
+        function showNewIdeaModal() {
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <h2 class="text-xl font-bold mb-4">New Startup Idea</h2>
+                <input id="idea-title" type="text" placeholder="Idea Name" class="w-full p-2 mb-4 rounded border dark:bg-slate-800 dark:border-slate-700 outline-none">
+                <textarea id="idea-desc" placeholder="Problem it solves..." class="w-full p-2 mb-4 rounded border dark:bg-slate-800 dark:border-slate-700 outline-none" rows="3"></textarea>
+                <div class="mb-4">
+                    <label class="text-xs block mb-1">Estimated Approval Rate (%)</label>
+                    <input id="idea-rate" type="range" class="w-full">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 text-slate-500">Cancel</button>
+                    <button onclick="addIdea()" class="bg-blue-600 text-white px-4 py-2 rounded">Create</button>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function addIdea() {
+            const title = document.getElementById('idea-title').value;
+            const desc = document.getElementById('idea-desc').value;
+            const rate = document.getElementById('idea-rate').value;
+            if(!title) return;
+            appState.ideas.push({ id: Date.now(), title, desc, rate });
+            closeModal();
+            renderIdeas();
+            saveUserData();
+        }
+
+        function renderIdeas() {
+            const list = document.getElementById('ideas-list');
+            list.innerHTML = appState.ideas.map(i => `
+                <div class="glass-card p-4">
+                    <h4 class="font-bold text-blue-500 mb-2">${i.title}</h4>
+                    <p class="text-sm text-slate-500 mb-4 h-12 overflow-hidden">${i.desc}</p>
+                    <div class="flex justify-between items-center text-xs">
+                        <span>Approval: ${i.rate}%</span>
+                        <div class="w-24 bg-slate-200 dark:bg-slate-700 h-1 rounded">
+                            <div class="bg-green-500 h-full" style="width: ${i.rate}%"></div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('stat-ideas').innerText = appState.ideas.length;
+            renderCharts();
+        }
+
+        function showNewLeadModal() {
+            const modal = document.getElementById('modal-container');
+            const content = document.getElementById('modal-content');
+            content.innerHTML = `
+                <h2 class="text-xl font-bold mb-4">Add Potential Client</h2>
+                <input id="l-name" type="text" placeholder="Contact Name / Co" class="w-full p-2 mb-4 rounded border dark:bg-slate-800 dark:border-slate-700 outline-none">
+                <select id="l-stage" class="w-full p-2 mb-4 rounded border dark:bg-slate-800 dark:border-slate-700 outline-none">
+                    <option value="Lead">Lead</option>
+                    <option value="Proposal">Proposal</option>
+                    <option value="Secure">Secure Client</option>
+                </select>
+                <input id="l-val" type="number" placeholder="Est. Value ($)" class="w-full p-2 mb-4 rounded border dark:bg-slate-800 dark:border-slate-700 outline-none">
+                <div class="flex justify-end gap-2">
+                    <button onclick="closeModal()" class="px-4 py-2 text-slate-500">Cancel</button>
+                    <button onclick="addLead()" class="bg-blue-600 text-white px-4 py-2 rounded">Add</button>
+                </div>
+            `;
+            modal.classList.remove('hidden');
+        }
+
+        function addLead() {
+            const name = document.getElementById('l-name').value;
+            const stage = document.getElementById('l-stage').value;
+            const val = document.getElementById('l-val').value;
+            if(!name) return;
+            appState.leads.push({ id: Date.now(), name, stage, val, date: new Date().toLocaleDateString() });
+            closeModal();
+            renderLeads();
+            saveUserData();
+        }
+
+        function renderLeads() {
+            const tbody = document.getElementById('leads-table-body');
+            tbody.innerHTML = appState.leads.map(l => `
+                <tr class="border-t border-slate-100 dark:border-slate-800">
+                    <td class="p-4 font-medium">${l.name}</td>
+                    <td class="p-4"><span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-600 text-xs rounded">${l.stage}</span></td>
+                    <td class="p-4 font-bold">$${l.val}</td>
+                    <td class="p-4 text-xs text-slate-500">${l.date}</td>
+                    <td class="p-4"><button onclick="delLead(${l.id})" class="text-red-400 hover:text-red-600"><i class="fas fa-trash"></i></button></td>
+                </tr>
+            `).join('');
+            
+            const secure = appState.leads.filter(l => l.stage === 'Secure').length;
+            document.getElementById('stat-clients').innerText = secure;
+            const conv = appState.leads.length ? Math.round((secure / appState.leads.length) * 100) : 0;
+            document.getElementById('stat-conv').innerText = `${conv}%`;
+            renderCharts();
+        }
+
+        function delLead(id) {
+            appState.leads = appState.leads.filter(l => l.id !== id);
+            renderLeads();
+            saveUserData();
+        }
+
+        function savePlan() {
+            const h = appState.activeHorizon;
+            appState.plans[h] = {
+                sales: document.getElementById('plan-sales').value,
+                support: document.getElementById('plan-support').value,
+                engineering: document.getElementById('plan-engineering').value,
+                marketing: document.getElementById('plan-marketing').value,
+                operations: document.getElementById('plan-operations').value,
+                finance: document.getElementById('plan-finance').value
+            };
+            saveUserData();
+            const btn = document.querySelector(`button[onclick="savePlan()"]`);
+            btn.innerText = "Saved!";
+            setTimeout(() => btn.innerText = "Lock Strategy", 2000);
+        }
+
+        function loadPlanInputs() {
+            const data = appState.plans[appState.activeHorizon] || {};
+            document.getElementById('plan-sales').value = data.sales || '';
+            document.getElementById('plan-support').value = data.support || '';
+            document.getElementById('plan-engineering').value = data.engineering || '';
+            document.getElementById('plan-marketing').value = data.marketing || '';
+            document.getElementById('plan-operations').value = data.operations || '';
+            document.getElementById('plan-finance').value = data.finance || '';
+        }
+
+        function saveVision() {
+            appState.vision = {
+                text: document.getElementById('vision-text').value,
+                passion: document.getElementById('passion-text').value,
+                obsession: document.getElementById('metric-obsession').value,
+                grit: document.getElementById('metric-grit').value,
+                potential: document.getElementById('metric-potential').value
+            };
+            saveUserData();
+            renderCharts();
+        }
+
+        function loadVision() {
+            const v = appState.vision || { obsession: 50, grit: 50, potential: 50 };
+            document.getElementById('vision-text').value = v.text || '';
+            document.getElementById('passion-text').value = v.passion || '';
+            document.getElementById('metric-obsession').value = v.obsession;
+            document.getElementById('metric-grit').value = v.grit;
+            document.getElementById('metric-potential').value = v.potential;
+        }
+
+        function closeModal() {
+            document.getElementById('modal-container').classList.add('hidden');
+        }
+
+        function updateChart(id, type, labels, data, label, colors) {
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            if (chartInstances[id]) chartInstances[id].destroy();
+
+            const isDark = document.body.classList.contains('dark');
+            const color = isDark ? '#cbd5e1' : '#475569';
+
+            chartInstances[id] = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: Array.isArray(colors) ? colors : colors + '44',
+                        borderColor: Array.isArray(colors) ? colors : colors,
+                        borderWidth: 2,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: (type === 'polarArea' || type === 'radar'), labels: { color: color } } },
+                    scales: (type === 'bar' || type === 'line') ? {
+                        y: { beginAtZero: true, grid: { color: isDark ? '#334155' : '#f1f5f9' }, ticks: { color: color } },
+                        x: { grid: { display: false }, ticks: { color: color } }
+                    } : (type === 'radar' ? {
+                        r: { grid: { color: isDark ? '#334155' : '#e2e8f0' }, pointLabels: { color: color }, ticks: { display: false } }
+                    } : {})
+                }
+            });
+        }
+
+        function renderCharts() {
+            if (appState.activeTab === 'dashboard') {
+                updateChart('pipelineChart', 'bar', ['Lead', 'Prop', 'Secure'], [
+                    appState.leads.filter(l => l.stage === 'Lead').length,
+                    appState.leads.filter(l => l.stage === 'Proposal').length,
+                    appState.leads.filter(l => l.stage === 'Secure').length
+                ], 'Count', ['#3b82f6', '#8b5cf6', '#f59e0b']);
+
+                updateChart('resourceChart', 'polarArea', ['Energy', 'Time', 'Cap'], [
+                    appState.resources.energy,
+                    appState.resources.time,
+                    Math.min(100, (appState.resources.money / 1000))
+                ], 'Score', ['#facc15', '#3b82f6', '#22c55e']);
+            }
+
+            if (appState.activeTab === 'vision') {
+                updateChart('visionRadarChart', 'radar', ['Obsession', 'Grit', 'Potential'], [
+                    appState.vision.obsession,
+                    appState.vision.grit,
+                    appState.vision.potential
+                ], 'Level', '#3b82f6');
+            }
+
+            if (appState.activeTab === 'outreach') {
+                updateChart('outreachChart', 'line', ['Outreach', 'Followup', 'Pitch', 'Convince', 'Chase'], Object.values(appState.outreach), 'Weekly Count', '#3b82f6');
+            }
+
+            if (appState.activeTab === 'ideas') {
+                updateChart('ideaSuccessChart', 'bar', appState.ideas.map(i => i.title), appState.ideas.map(i => i.rate), 'Appr %', '#10b981');
+            }
+        }
+
+        function renderAll() {
+            renderIdeas();
+            renderLeads();
+            renderMilestones();
+            renderOutreach();
+            loadPlanInputs();
+            loadVision();
+            updateFounderStats();
+            renderCharts();
+        }
+
+        window.onload = async () => {
+            await initDB();
+            if (localStorage.getItem('theme') === 'dark') {
+                document.body.classList.add('dark');
+                document.getElementById('theme-icon').className = 'fas fa-sun';
+            }
+        };
+    </script>
+</body>
+</html>

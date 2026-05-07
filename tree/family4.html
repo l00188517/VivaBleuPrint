@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Family Tree Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+        :root {
+            --male-color: #3b82f6;
+            --female-color: #ec4899;
+        }
+
+        body { font-family: 'DM Sans', sans-serif; background-color: #eef0f6; overflow: hidden; user-select: none; }
+
+        #treeContainer::before {
+            content: '';
+            position: absolute; inset: 0;
+            background-image: radial-gradient(circle, #b8bdd0 1px, transparent 1px);
+            background-size: 28px 28px;
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .tree-container { width: 100vw; height: 100vh; cursor: grab; overflow: hidden; position: relative; }
+        .tree-container:active { cursor: grabbing; }
+        .node { cursor: move; transition: filter 0.25s cubic-bezier(.4,0,.2,1); }
+        .node:hover { filter: drop-shadow(0 14px 20px rgba(0,0,0,0.2)) brightness(1.01); }
+        .connector { fill: none; stroke: #a0a8be; stroke-width: 2px; stroke-linecap: round; transition: opacity 0.3s ease; pointer-events: none; }
+        .connector.spouse { stroke-dasharray: 7,4; stroke: #b8bdd0; stroke-width: 1.8px; }
+        .modal-overlay { background-color: rgba(15,20,40,0.5); backdrop-filter: blur(10px); }
+        .profile-pic-preview { width: 80px; height: 80px; object-fit: cover; border-radius: 50%; border: 3px solid #3b82f6; box-shadow: 0 0 0 4px rgba(59,130,246,0.15); }
+        #toast { transition: transform 0.35s cubic-bezier(.4,0,.2,1), opacity 0.35s ease; transform: translateY(-120%); opacity: 0; }
+        #toast.show { transform: translateY(0); opacity: 1; }
+        .empty-state { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; z-index: 5; }
+
+        /* Search styling */
+        .search-results { max-height: 300px; overflow-y: auto; box-shadow: 0 16px 40px rgba(0,0,0,0.14); }
+        #searchInput { font-family: 'DM Sans', sans-serif; }
+    </style>
+</head>
+<body>
+
+<div id="app" class="relative">
+    <div id="toast" class="fixed top-20 left-1/2 -translate-x-1/2 z-50 text-white px-5 py-2.5 rounded-full shadow-xl text-sm font-medium pointer-events-none" style="background:linear-gradient(135deg,#1e293b,#334155);font-family:'DM Sans',sans-serif;letter-spacing:.01em;">
+        Nothing selected
+    </div>
+
+    <header class="fixed top-0 left-0 right-0 z-10 bg-white/85 backdrop-blur-lg border-b border-slate-200/70 px-6 py-3.5 flex flex-wrap gap-4 justify-between items-center">
+        <div class="flex items-center gap-6">
+            <h1 class="flex items-center gap-2" style="font-family:'Lora',serif;font-size:1.2rem;font-weight:600;color:#1e293b;letter-spacing:-0.01em;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                Family Archive
+            </h1>
+
+            <!-- Search Component -->
+            <div class="relative w-64 md:w-80">
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        placeholder="Search for a member..." 
+                        class="w-full pl-10 pr-4 py-2 bg-slate-100 border-none rounded-full text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-all"
+                        oninput="handleSearch(this.value)"
+                    >
+                    <svg class="absolute left-3 top-2.5 text-slate-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                </div>
+                <div id="searchResults" class="hidden absolute top-full left-0 right-0 mt-2 bg-white rounded-xl border border-slate-200 search-results z-50 overflow-hidden">
+                    <!-- Results dynamically injected -->
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button onclick="zoomIn()" class="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button onclick="zoomOut()" class="p-2 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+            </button>
+            <button onclick="resetView()" class="px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 shadow-sm" style="background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;border:none;font-family:'DM Sans',sans-serif;">Reset View</button>
+        </div>
+    </header>
+
+    <div id="treeContainer" class="tree-container">
+        <!-- Empty State UI -->
+        <div id="emptyState" class="hidden empty-state">
+            <div style="background:white;padding:2.5rem 2.5rem 2rem;border-radius:28px;box-shadow:0 24px 64px rgba(0,0,0,0.13),0 4px 16px rgba(0,0,0,0.07);max-width:340px;border:1px solid rgba(230,235,245,0.9);text-align:center;">
+                <div style="width:72px;height:72px;background:linear-gradient(135deg,#dbeafe,#ede9fe);border-radius:22px;display:flex;align-items:center;justify-content:center;margin:0 auto 1.25rem;box-shadow:0 4px 14px rgba(99,102,241,0.18);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" stroke="#6366f1">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                </div>
+                <h2 style="font-family:'Lora',serif;font-size:1.5rem;color:#1e293b;margin:0 0 .5rem;font-weight:600;">Empty Archive</h2>
+                <p style="color:#64748b;font-size:.875rem;line-height:1.65;margin:0 0 1.75rem;">Begin your family story by adding the very first member of your tree.</p>
+                <button onclick="startFirstMember()" style="width:100%;padding:.9rem;background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;border:none;border-radius:14px;font-family:'DM Sans',sans-serif;font-weight:600;font-size:.95rem;cursor:pointer;box-shadow:0 4px 16px rgba(99,102,241,0.35);">
+                    ✦ Start My Tree
+                </button>
+            </div>
+        </div>
+
+        <svg id="treeSvg" width="100%" height="100%">
+            <g id="viewport">
+                <g id="connectionsLayer"></g>
+                <g id="nodesLayer"></g>
+            </g>
+        </svg>
+    </div>
+
+    <!-- Context Menu -->
+    <div id="contextMenu" class="hidden absolute z-20 p-2 w-56" style="background:white;border-radius:16px;box-shadow:0 16px 48px rgba(0,0,0,0.16),0 4px 12px rgba(0,0,0,0.08);border:1px solid #f1f5f9;font-family:'DM Sans',sans-serif;">
+        <button onclick="openForm('edit')" class="w-full text-left px-3 py-2 rounded-lg flex items-center gap-2 transition-colors" style="font-size:.9rem;font-weight:600;color:#3b82f6;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background=''">
+            ✏️ Edit Profile
+        </button>
+        <div style="height:1px;background:#f1f5f9;margin:.35rem 0;"></div>
+        <p style="font-size:.65rem;font-weight:700;color:#94a3b8;padding:.25rem .75rem;text-transform:uppercase;letter-spacing:.08em;">Direct Relatives</p>
+        <button id="addParentBtn" onclick="openForm('parent')" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors" style="color:#475569;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">Add Parent</button>
+        <button onclick="openForm('spouse')" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors" style="color:#475569;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">Add Spouse</button>
+        <button onclick="openForm('sibling')" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors" style="color:#475569;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">Add Sibling</button>
+        
+        <div style="height:1px;background:#f1f5f9;margin:.35rem 0;"></div>
+        <p style="font-size:.65rem;font-weight:700;color:#94a3b8;padding:.25rem .75rem;text-transform:uppercase;letter-spacing:.08em;">Children</p>
+        <button onclick="openForm('child-single')" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors" style="color:#475569;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">Add Single Parent Child</button>
+        <button id="addChildPartnerBtn" onclick="openForm('child-partner')" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors" style="color:#475569;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">Add Child with Partner</button>
+        <button onclick="openForm('child-new-partner')" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors" style="color:#475569;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">Add Child with New Partner</button>
+        
+        <div style="height:1px;background:#f1f5f9;margin:.35rem 0;"></div>
+        <button onclick="deleteNode()" class="w-full text-left px-3 py-2 rounded-lg text-sm transition-colors" style="color:#ef4444;" onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background=''">Remove Member</button>
+    </div>
+
+    <!-- Form Modal -->
+    <div id="modal" class="hidden fixed inset-0 z-30 modal-overlay flex items-center justify-center p-4">
+        <div style="background:white;border-radius:24px;box-shadow:0 32px 80px rgba(0,0,0,0.2);width:100%;max-width:480px;max-height:90vh;overflow-y:auto;font-family:'DM Sans',sans-serif;">
+            <div style="padding:1.4rem 1.6rem 1.2rem;border-bottom:1px solid #f1f5f9;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:white;border-radius:24px 24px 0 0;z-index:1;">
+                <h2 id="modalTitle" style="font-family:'Lora',serif;font-size:1.25rem;color:#1e293b;margin:0;">Member Info</h2>
+                <button onclick="closeModal()" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:#f1f5f9;border:none;color:#64748b;cursor:pointer;font-size:1rem;">✕</button>
+            </div>
+            
+            <form id="memberForm" style="padding:1.5rem;display:flex;flex-direction:column;gap:1.1rem;">
+                <div style="display:flex;align-items:center;gap:1.25rem;margin-bottom:.25rem;">
+                    <div class="relative group" style="position:relative;">
+                        <img id="imagePreview" src="https://via.placeholder.com/150" class="profile-pic-preview shadow-md" alt="Profile">
+                        <label style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);border-radius:50%;opacity:0;cursor:pointer;transition:opacity 0.2s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0">
+                            <input type="file" id="photoInput" style="display:none;" accept="image/*" onchange="previewImage(this)">
+                            <span style="color:white;font-size:.75rem;font-weight:600;">Upload</span>
+                        </label>
+                    </div>
+                    <div style="flex:1;">
+                        <label style="display:block;font-size:.75rem;font-weight:600;color:#475569;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.35rem;">Full Name</label>
+                        <input type="text" id="name" required style="width:100%;padding:.6rem .9rem;border:1.5px solid #e2e8f0;border-radius:10px;outline:none;font-family:'DM Sans',sans-serif;font-size:.95rem;color:#1e293b;box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+                    <div>
+                        <label style="display:block;font-size:.75rem;font-weight:600;color:#475569;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.35rem;">Gender</label>
+                        <select id="gender" style="width:100%;padding:.6rem .9rem;border:1.5px solid #e2e8f0;border-radius:10px;outline:none;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#1e293b;background:white;">
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:.75rem;font-weight:600;color:#475569;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.35rem;">Birthday</label>
+                        <input type="date" id="birthday" style="width:100%;padding:.6rem .9rem;border:1.5px solid #e2e8f0;border-radius:10px;outline:none;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#1e293b;box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="display:block;font-size:.75rem;font-weight:600;color:#475569;letter-spacing:.04em;text-transform:uppercase;margin-bottom:.35rem;">Profession</label>
+                    <input type="text" id="profession" style="width:100%;padding:.6rem .9rem;border:1.5px solid #e2e8f0;border-radius:10px;outline:none;font-family:'DM Sans',sans-serif;font-size:.95rem;color:#1e293b;box-sizing:border-box;">
+                </div>
+
+                <div style="padding-top:1rem;border-top:1px solid #f1f5f9;display:flex;gap:.75rem;">
+                    <button type="button" onclick="closeModal()" style="flex:1;padding:.7rem;border:1.5px solid #e2e8f0;border-radius:10px;background:white;font-family:'DM Sans',sans-serif;font-size:.9rem;color:#475569;cursor:pointer;">Cancel</button>
+                    <button type="submit" style="flex:1;padding:.7rem;background:linear-gradient(135deg,#3b82f6,#6366f1);color:white;border:none;border-radius:10px;font-family:'DM Sans',sans-serif;font-size:.9rem;font-weight:600;cursor:pointer;box-shadow:0 3px 10px rgba(99,102,241,0.3);">Save Profile</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    const generateId = () => 'mem_' + Math.random().toString(36).substr(2, 9);
+
+    let nodes = [];
+       /* {
+            id: 'root',
+            name: 'John Smith',
+            gender: 'Male',
+            birthday: '1985-06-15',
+            profession: 'Software Engineer',
+            photo: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=150',
+            parents: [],
+            spouses: [],
+            children: [],
+            x: window.innerWidth / 2,
+            y: window.innerHeight / 2
+        }*/
+    
+
+    let selectedNodeId = null;
+    let draggingNodeId = null;
+    let mode = 'edit';
+    let zoom = 1;
+    let panX = 0;
+    let panY = 0;
+    let isPanning = false;
+    let startMousePos = { x: 0, y: 0 };
+    let lastMousePos = { x: 0, y: 0 };
+    let hasMoved = false;
+
+    const viewport = document.getElementById('viewport');
+    const nodesLayer = document.getElementById('nodesLayer');
+    const connectionsLayer = document.getElementById('connectionsLayer');
+    const contextMenu = document.getElementById('contextMenu');
+    const modal = document.getElementById('modal');
+    const memberForm = document.getElementById('memberForm');
+    const imagePreview = document.getElementById('imagePreview');
+    const toast = document.getElementById('toast');
+    const emptyState = document.getElementById('emptyState');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+
+    window.onload = () => {
+        renderTree();
+        setupInputHandlers();
+        window.onclick = (e) => {
+            if (!contextMenu.contains(e.target)) contextMenu.classList.add('hidden');
+            if (!e.target.closest('#searchInput') && !e.target.closest('#searchResults')) {
+                searchResults.classList.add('hidden');
+            }
+        };
+    };
+
+    function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+    }
+
+    function setupInputHandlers() {
+        const container = document.getElementById('treeContainer');
+
+        container.onmousedown = (e) => {
+            if (e.button !== 0) return;
+            const nodeEl = e.target.closest('.node');
+            
+            startMousePos = { x: e.clientX, y: e.clientY };
+            lastMousePos = { x: e.clientX, y: e.clientY };
+            hasMoved = false;
+
+            if (nodeEl) {
+                draggingNodeId = nodeEl.getAttribute('data-id');
+                selectedNodeId = draggingNodeId;
+            } else {
+                isPanning = true;
+                selectedNodeId = null;
+            }
+        };
+
+        window.onmousemove = (e) => {
+            const dx_screen = e.clientX - lastMousePos.x;
+            const dy_screen = e.clientY - lastMousePos.y;
+            
+            if (Math.abs(e.clientX - startMousePos.x) > 5 || Math.abs(e.clientY - startMousePos.y) > 5) {
+                hasMoved = true;
+            }
+
+            if (draggingNodeId) {
+                const node = nodes.find(n => n.id === draggingNodeId);
+                if (node) {
+                    node.x += dx_screen / zoom;
+                    node.y += dy_screen / zoom;
+                    renderTree();
+                }
+            } else if (isPanning) {
+                panX += dx_screen;
+                panY += dy_screen;
+                updateTransform();
+            }
+            lastMousePos = { x: e.clientX, y: e.clientY };
+        };
+
+        window.onmouseup = (e) => {
+            if (!hasMoved && draggingNodeId) {
+                openForm('edit');
+            }
+            draggingNodeId = null;
+            isPanning = false;
+        };
+    }
+
+    // --- Search Functionality ---
+    function handleSearch(query) {
+        if (!query.trim()) {
+            searchResults.classList.add('hidden');
+            return;
+        }
+
+        const filtered = nodes.filter(n => 
+            n.name.toLowerCase().includes(query.toLowerCase()) || 
+            (n.profession && n.profession.toLowerCase().includes(query.toLowerCase()))
+        );
+
+        if (filtered.length > 0) {
+            searchResults.innerHTML = filtered.map(n => `
+                <div onclick="jumpToNode('${n.id}')" class="px-4 py-3 hover:bg-slate-50 cursor-pointer flex items-center gap-3 border-b border-slate-50 last:border-none">
+                    <img src="${n.photo || 'https://via.placeholder.com/150'}" class="w-8 h-8 rounded-full object-cover">
+                    <div class="flex-1">
+                        <div class="text-sm font-bold text-slate-800">${n.name}</div>
+                        <div class="text-[10px] text-slate-500">${n.profession || 'Family Member'}</div>
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-300">#${n.id.substr(-4)}</div>
+                </div>
+            `).join('');
+            searchResults.classList.remove('hidden');
+        } else {
+            searchResults.innerHTML = '<div class="px-4 py-3 text-sm text-slate-400">No members found</div>';
+            searchResults.classList.remove('hidden');
+        }
+    }
+
+    function jumpToNode(id) {
+        const node = nodes.find(n => n.id === id);
+        if (node) {
+            // Zoom in slightly on jump
+            zoom = 1.2;
+            panX = (window.innerWidth / 2) - (node.x * zoom);
+            panY = (window.innerHeight / 2) - (node.y * zoom);
+            updateTransform();
+            selectedNodeId = id;
+            showToast(`Centered on ${node.name}`);
+            
+            // Highlight the node temporarily (via a custom CSS class or just updating)
+            renderTree();
+        }
+        searchResults.classList.add('hidden');
+        searchInput.value = '';
+    }
+
+    function findSafePosition(targetX, targetY) {
+        let x = targetX;
+        let y = targetY;
+        while (nodes.some(n => Math.abs(n.x - x) < 50 && Math.abs(n.y - y) < 50)) {
+            x += 160;
+        }
+        return { x, y };
+    }
+
+    function renderTree() {
+        nodesLayer.innerHTML = '';
+        connectionsLayer.innerHTML = '';
+
+        if (nodes.length === 0) {
+            emptyState.classList.remove('hidden');
+        } else {
+            emptyState.classList.add('hidden');
+        }
+
+        nodes.forEach(node => {
+            // Draw Spouses
+            if (node.spouses) {
+                node.spouses.forEach(spouseId => {
+                    const spouse = nodes.find(n => n.id === spouseId);
+                    if (spouse && node.id < spouse.id) {
+                        drawPath(`M ${node.x} ${node.y} L ${spouse.x} ${spouse.y}`, 'spouse');
+                    }
+                });
+            }
+
+            // Draw Children
+            if (node.children) {
+                node.children.forEach(childId => {
+                    const child = nodes.find(n => n.id === childId);
+                    if (!child) return;
+
+                    const otherParentId = (child.parents || []).find(pid => pid !== node.id);
+                    const otherParent = otherParentId ? nodes.find(n => n.id === otherParentId) : null;
+
+                    if (otherParent && (node.spouses || []).includes(otherParentId)) {
+                        if (node.id < otherParentId) {
+                            const midX = (node.x + otherParent.x) / 2;
+                            const midY = (node.y + otherParent.y) / 2;
+                            const elbowY = (midY + child.y) / 2;
+                            drawPath(`M ${midX} ${midY} L ${midX} ${elbowY} L ${child.x} ${elbowY} L ${child.x} ${child.y - 52}`, 'child');
+                        }
+                    } else {
+                        // Connection for single parent or non-spouse parentage
+                        const pList = child.parents || [];
+                        if (pList.length <= 1 || node.id === pList) {
+                            const midY = (node.y + child.y) / 2;
+                            drawPath(`M ${node.x} ${node.y + 52} C ${node.x} ${midY}, ${child.x} ${midY}, ${child.x} ${child.y - 52}`, 'child');
+                        }
+                    }
+                });
+            }
+        });
+
+        nodes.forEach(node => {
+            const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            group.setAttribute('transform', `translate(${node.x - 90}, ${node.y - 52})`);
+            group.setAttribute('class', 'node');
+            group.setAttribute('data-id', node.id);
+            
+            group.oncontextmenu = (e) => {
+                e.preventDefault();
+                showContextMenu(e, node.id);
+            };
+
+            const isSelected = node.id === selectedNodeId;
+            const isFemale = node.gender === 'Female';
+            const accentColor = isFemale ? '#ec4899' : '#3b82f6';
+            const accentLight = isFemale ? '#fce7f3' : '#dbeafe';
+            const gradStart = isFemale ? '#ec4899' : '#3b82f6';
+            const gradEnd   = isFemale ? '#f43f5e' : '#6366f1';
+
+            const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+            // Card shadow filter
+            const filterId = `shadow-${node.id}`;
+            const filter = document.createElementNS('http://www.w3.org/2000/svg', 'filter');
+            filter.setAttribute('id', filterId);
+            filter.setAttribute('x', '-20%'); filter.setAttribute('y', '-20%');
+            filter.setAttribute('width', '140%'); filter.setAttribute('height', '140%');
+            const feDropShadow = document.createElementNS('http://www.w3.org/2000/svg', 'feDropShadow');
+            feDropShadow.setAttribute('dx', '0'); feDropShadow.setAttribute('dy', isSelected ? '6' : '3');
+            feDropShadow.setAttribute('stdDeviation', isSelected ? '10' : '6');
+            feDropShadow.setAttribute('flood-color', isSelected ? accentColor : '#1e293b');
+            feDropShadow.setAttribute('flood-opacity', isSelected ? '0.28' : '0.10');
+            filter.appendChild(feDropShadow);
+            defs.appendChild(filter);
+
+            // Gradient for accent bar
+            const gradId = `grad-${node.id}`;
+            const grad = document.createElementNS('http://www.w3.org/2000/svg', 'linearGradient');
+            grad.setAttribute('id', gradId);
+            grad.setAttribute('x1', '0%'); grad.setAttribute('y1', '0%');
+            grad.setAttribute('x2', '100%'); grad.setAttribute('y2', '0%');
+            const s1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', gradStart);
+            const s2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+            s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', gradEnd);
+            grad.appendChild(s1); grad.appendChild(s2);
+            defs.appendChild(grad);
+
+            // Avatar clip
+            const clipId = `clip-${node.id}`;
+            const clip = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+            clip.setAttribute('id', clipId);
+            const circleClip = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            circleClip.setAttribute('cx', '50'); circleClip.setAttribute('cy', '52'); circleClip.setAttribute('r', '24');
+            clip.appendChild(circleClip);
+            defs.appendChild(clip);
+
+            nodesLayer.appendChild(defs);
+
+            // Card background rect
+            const cardGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            cardGroup.setAttribute('filter', `url(#${filterId})`);
+
+            const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            rect.setAttribute('width', '180'); rect.setAttribute('height', '104');
+            rect.setAttribute('rx', '14'); rect.setAttribute('fill', 'white');
+            if (isSelected) {
+                rect.setAttribute('stroke', accentColor);
+                rect.setAttribute('stroke-width', '2.5');
+            } else {
+                rect.setAttribute('stroke', '#e2e8f0');
+                rect.setAttribute('stroke-width', '1');
+            }
+            cardGroup.appendChild(rect);
+
+            // Accent bar at top
+            const accentRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            accentRect.setAttribute('width', '180'); accentRect.setAttribute('height', '6');
+            accentRect.setAttribute('rx', '14'); accentRect.setAttribute('fill', `url(#${gradId})`);
+            cardGroup.appendChild(accentRect);
+
+            // Bottom-right corner to square off bottom of accent bar
+            const accentFix = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+            accentFix.setAttribute('width', '180'); accentFix.setAttribute('height', '3');
+            accentFix.setAttribute('y', '3'); accentFix.setAttribute('fill', `url(#${gradId})`);
+            cardGroup.appendChild(accentFix);
+
+            group.appendChild(cardGroup);
+
+            // Avatar ring background
+            const avatarBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            avatarBg.setAttribute('cx', '50'); avatarBg.setAttribute('cy', '52'); avatarBg.setAttribute('r', '28');
+            avatarBg.setAttribute('fill', accentLight);
+            group.appendChild(avatarBg);
+
+            // Avatar ring
+            const avatarRing = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            avatarRing.setAttribute('cx', '50'); avatarRing.setAttribute('cy', '52'); avatarRing.setAttribute('r', '26');
+            avatarRing.setAttribute('fill', 'none');
+            avatarRing.setAttribute('stroke', accentColor); avatarRing.setAttribute('stroke-width', '2');
+            group.appendChild(avatarRing);
+
+            // Avatar image
+            const img = document.createElementNS('http://www.w3.org/2000/svg', 'image');
+            img.setAttributeNS('http://www.w3.org/1999/xlink', 'href', node.photo || '');
+            img.setAttribute('x', '26'); img.setAttribute('y', '28');
+            img.setAttribute('width', '48'); img.setAttribute('height', '48');
+            img.setAttribute('clip-path', `url(#${clipId})`);
+            img.setAttribute('preserveAspectRatio', 'xMidYMid slice');
+            group.appendChild(img);
+
+            // If no photo, show a gender initial circle
+            if (!node.photo || node.photo.includes('placeholder')) {
+                const initBg = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                initBg.setAttribute('cx', '50'); initBg.setAttribute('cy', '52'); initBg.setAttribute('r', '24');
+                initBg.setAttribute('fill', accentLight);
+                group.insertBefore(initBg, img);
+                const initText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                initText.setAttribute('x', '50'); initText.setAttribute('y', '57');
+                initText.setAttribute('text-anchor', 'middle');
+                initText.setAttribute('font-size', '18'); initText.setAttribute('font-weight', '600');
+                initText.setAttribute('fill', accentColor);
+                initText.setAttribute('class', 'select-none pointer-events-none');
+                initText.setAttribute('font-family', 'DM Sans, sans-serif');
+                initText.textContent = (node.name || '?').charAt(0).toUpperCase();
+                group.appendChild(initText);
+            }
+
+            // Name text
+            const name = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            name.setAttribute('x', '88'); name.setAttribute('y', '44');
+            name.setAttribute('font-size', '13'); name.setAttribute('font-weight', '600');
+            name.setAttribute('fill', '#1e293b');
+            name.setAttribute('font-family', 'DM Sans, sans-serif');
+            name.setAttribute('class', 'select-none pointer-events-none');
+            name.textContent = node.name.length > 14 ? node.name.substring(0, 12) + '…' : node.name;
+            group.appendChild(name);
+
+            // Profession
+            const prof = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            prof.setAttribute('x', '88'); prof.setAttribute('y', '60');
+            prof.setAttribute('font-size', '10.5'); prof.setAttribute('fill', '#64748b');
+            prof.setAttribute('font-family', 'DM Sans, sans-serif');
+            prof.setAttribute('class', 'select-none pointer-events-none');
+            prof.textContent = (node.profession || 'Family Member').length > 16
+                ? (node.profession || 'Family Member').substring(0, 14) + '…'
+                : (node.profession || 'Family Member');
+            group.appendChild(prof);
+
+            // Birth year badge (if available)
+            if (node.birthday) {
+                const year = node.birthday.split('-')[0];
+                const badgeBg = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                badgeBg.setAttribute('x', '86'); badgeBg.setAttribute('y', '72');
+                badgeBg.setAttribute('width', '52'); badgeBg.setAttribute('height', '18');
+                badgeBg.setAttribute('rx', '6'); badgeBg.setAttribute('fill', accentLight);
+                group.appendChild(badgeBg);
+
+                const yearText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                yearText.setAttribute('x', '112'); yearText.setAttribute('y', '84');
+                yearText.setAttribute('text-anchor', 'middle');
+                yearText.setAttribute('font-size', '10'); yearText.setAttribute('font-weight', '600');
+                yearText.setAttribute('fill', accentColor);
+                yearText.setAttribute('font-family', 'DM Sans, sans-serif');
+                yearText.setAttribute('class', 'select-none pointer-events-none');
+                yearText.textContent = 'b. ' + year;
+                group.appendChild(yearText);
+            }
+
+            nodesLayer.appendChild(group);
+        });
+
+        updateTransform();
+    }
+
+    function drawPath(d, type) {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('class', `connector ${type}`);
+        connectionsLayer.appendChild(path);
+    }
+
+    function updateTransform() {
+        viewport.setAttribute('transform', `translate(${panX}, ${panY}) scale(${zoom})`);
+    }
+
+    function showContextMenu(e, id) {
+        selectedNodeId = id;
+        const node = nodes.find(n => n.id === id);
+        if (!node) return;
+
+        // Toggle Child with Partner button
+        document.getElementById('addChildPartnerBtn').style.display = (node.spouses && node.spouses.length > 0) ? 'block' : 'none';
+        document.getElementById('addParentBtn').style.display = (node.parents && node.parents.length >= 2) ? 'none' : 'block';
+        
+
+        contextMenu.style.left = `${e.clientX}px`;
+        contextMenu.style.top = `${e.clientY}px`;
+        contextMenu.classList.remove('hidden');
+        renderTree();
+    }
+
+    function startFirstMember() {
+        selectedNodeId = null;
+        openForm('create-root');
+    }
+
+    function openForm(targetMode) {
+        mode = targetMode;
+        contextMenu.classList.add('hidden');
+        
+        if (!selectedNodeId && mode !== 'create-root' && mode !== 'edit') {
+            showToast("Please select a member first");
+            return;
+        }
+
+        modal.classList.remove('hidden');
+        const node = nodes.find(n => n.id === selectedNodeId);
+        if (mode === 'edit' && node) {
+            document.getElementById('name').value = node.name || '';
+            document.getElementById('gender').value = node.gender || 'Male';
+            document.getElementById('birthday').value = node.birthday || '';
+            document.getElementById('profession').value = node.profession || '';
+            imagePreview.src = node.photo || 'https://via.placeholder.com/150';
+        } else {
+            memberForm.reset();
+            imagePreview.src = 'https://via.placeholder.com/150';
+        }
+    }
+
+    function closeModal() { modal.classList.add('hidden'); }
+
+    function previewImage(input) {
+        if (input.files && input.files) {
+            const reader = new FileReader();
+            reader.onload = (e) => imagePreview.src = e.target.result;
+            reader.readAsDataURL(input.files);
+        }
+    }
+
+    memberForm.onsubmit = (e) => {
+        e.preventDefault();
+        const data = {
+            name: document.getElementById('name').value,
+            gender: document.getElementById('gender').value,
+            birthday: document.getElementById('birthday').value,
+            profession: document.getElementById('profession').value,
+            photo: imagePreview.src
+        };
+
+        if (mode === 'edit') {
+            const idx = nodes.findIndex(n => n.id === selectedNodeId);
+            if (idx !== -1) nodes[idx] = { ...nodes[idx], ...data };
+        } else if (mode === 'create-root') {
+            const newId = generateId();
+            nodes.push({
+                id: newId, ...data, parents: [], children: [], spouses: [], 
+                x: window.innerWidth / 2, y: window.innerHeight / 2
+            });
+        } else {
+            const newId = generateId();
+            const ref = nodes.find(n => n.id === selectedNodeId);
+            if (!ref) return;
+
+            let targetX = ref.x;
+            let targetY = ref.y;
+
+            // Define positions for the new parents
+            if (mode === 'parent') targetY -= 180;
+            else if (mode === 'spouse' || mode === 'sibling') targetX += 200;
+            else if (mode.startsWith('child')) targetY += 180;
+
+            const safePos = findSafePosition(targetX, targetY);
+            let newNode = { id: newId, ...data, parents: [], children: [], spouses: [], x: safePos.x, y: safePos.y };
+
+            if (mode === 'parent') {
+                // Create Father and Mother IDs
+                const fatherId = newId; // Use the ID generated for the form data
+                const motherId = generateId();
+
+                // Create the Father (using data from the form)
+                const fatherNode = {
+                    ...data,
+                    id: fatherId,
+                    gender: 'Male', // Override gender based on typical parent structure or form choice
+                    spouses: [motherId],
+                    children: [ref.id],
+                    parents: [],
+                    x: safePos.x - 100,
+                    y: safePos.y
+                };
+
+                // Create the Mother
+                const motherNode = {
+                    id: motherId,
+                    name: 'Mother',
+                    gender: 'Female',
+                    profession: '',
+                    photo: 'https://via.placeholder.com/150',
+                    spouses: [fatherId],
+                    children: [ref.id],
+                    parents: [],
+                    x: safePos.x + 100,
+                    y: safePos.y
+                };
+
+                // Link the child to both parents
+                if (!ref.parents) ref.parents = [];
+                ref.parents.push(fatherId, motherId);
+
+                nodes.push(fatherNode, motherNode);
+            } else if (mode === 'spouse') {
+                newNode.spouses.push(ref.id);
+                if (!ref.spouses) ref.spouses = [];
+                ref.spouses.push(newId);
+            } else if (mode === 'sibling') {
+                if (!ref.parents || ref.parents.length === 0) {
+                    const fatherId = generateId(), motherId = generateId();
+                    nodes.push({
+                        id: fatherId, name: 'Father', gender: 'Male', photo: '', spouses: [motherId], children: [ref.id, newId], parents: [],
+                        x: ref.x - 100, y: ref.y - 180
+                    }, {
+                        id: motherId, name: 'Mother', gender: 'Female', photo: '', spouses: [fatherId], children: [ref.id, newId], parents: [],
+                        x: ref.x + 100, y: ref.y - 180
+                    });
+                    ref.parents = [fatherId, motherId];
+                    newNode.parents = [fatherId, motherId];
+                } else {
+                    newNode.parents = [...ref.parents];
+                    newNode.parents.forEach(pid => {
+                        const p = nodes.find(n => n.id === pid);
+                        if (p) { if (!p.children) p.children = []; p.children.push(newId); }
+                    });
+                }
+            } else if (mode.startsWith('child')) {
+                newNode.parents.push(ref.id);
+                if (!ref.children) ref.children = [];
+                ref.children.push(newId);
+                
+                if (mode === 'child-partner' && ref.spouses && ref.spouses.length > 0) {
+                    const spouseId = ref.spouses;
+                    const spouse = nodes.find(n => n.id === spouseId);
+                    if (spouse) {
+                        newNode.parents.push(spouse.id);
+                        if (!spouse.children) spouse.children = [];
+                        spouse.children.push(newId);
+                    }
+                } else if (mode === 'child-new-partner') {
+                    const spouseId = generateId();
+                    const spPos = findSafePosition(ref.x + 200, ref.y);
+                    nodes.push({ 
+                        id: spouseId, name: 'Partner', gender: data.gender === 'Male' ? 'Female' : 'Male', spouses: [ref.id], children: [newId], parents: [],
+                        x: spPos.x, y: spPos.y 
+                    });
+                    if (!ref.spouses) ref.spouses = [];
+                    ref.spouses.push(spouseId);
+                    newNode.parents.push(spouseId);
+                }
+            }
+            if (mode !== 'parent'){
+                nodes.push(newNode);
+            }
+        }
+        renderTree();
+        closeModal();
+    };
+
+    function deleteNode() {
+        if (!selectedNodeId) return;
+        const target = nodes.find(n => n.id === selectedNodeId);
+        if (target && confirm(`Remove ${target.name}?`)) {
+            const id = selectedNodeId;
+            nodes = nodes.filter(n => n.id !== id);
+            nodes.forEach(n => {
+                n.parents = (n.parents || []).filter(pid => pid !== id);
+                n.children = (n.children || []).filter(cid => cid !== id);
+                n.spouses = (n.spouses || []).filter(sid => sid !== id);
+            });
+            selectedNodeId = null;
+            renderTree();
+        }
+        contextMenu.classList.add('hidden');
+    }
+
+    function zoomIn() { zoom *= 1.2; updateTransform(); }
+    function zoomOut() { zoom /= 1.2; updateTransform(); }
+    function resetView() { zoom = 1; panX = 0; panY = 0; updateTransform(); }
+</script>
+</body>
+</html>
