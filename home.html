@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PathFinder | Discover Your Career</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -98,6 +99,13 @@
             opacity: 0.5;
             cursor: not-allowed;
             transform: none;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 2.5rem;
         }
     </style>
 </head>
@@ -196,8 +204,8 @@
         <section id="step-quiz" class="step-container w-full py-12">
             <div class="space-y-8">
                 <div class="space-y-3">
+                    <p id="question-subtitle" class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-2 opacity-60">Subtitle</p>
                     <h2 id="question-title" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">Question?</h2>
-                    <p id="question-subtitle" class="text-slate-500 text-xl font-medium">Subtitle</p>
                     <div id="type-badge" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Select Multiple</div>
                 </div>
 
@@ -312,7 +320,78 @@
         </section>
 
         <!-- Step 4: Result -->
-        <section id="step-result" class="step-container w-full">
+        <section id="step-result-part-1" class="step-container w-full">
+            <div class="text-center mb-12">
+                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl mb-6">
+                    <i id="result-icon" class="fa-solid fa-flask text-4xl"></i>
+                </div>
+                <div class="inline-block px-4 py-1 bg-indigo-100 text-indigo-700 rounded-full text-sm font-bold tracking-widest uppercase mb-4">
+                    Your Holland Code: <span id="holland-code-text" class="ml-1">---</span>
+                </div>
+                <h1 id="result-title" class="text-5xl font-extrabold text-slate-900 mb-6">Investigative</h1>
+                <p id="result-desc" class="text-xl text-slate-600 max-w-2xl mx-auto"></p>
+            </div>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <div class="lg:col-span-2 glass-card p-6 md:p-10 shadow-xl">
+                    <canvas id="riasecChart"></canvas>
+                </div>
+                <div class="glass-card p-6 md:p-10 shadow-xl flex flex-col justify-center">
+                    <h3 class="text-lg font-bold text-slate-800 mb-6 border-b pb-2">Profile Breakdown</h3>
+                    <div id="code-breakdown" class="space-y-4">
+                        <!-- Top 3 breakdown will be injected here -->
+                    </div>
+                </div>
+            </div>
+            
+            <h3 id="job-title" class="text-2xl font-bold text-slate-900 mb-6 text-center">Top Career Paths</h3>
+            <div id="job-suggestions" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-12"></div>
+            <hr>
+
+            <!-- Step 2: Quiz -->
+            <div  id="last-quiz" class="w-full py-12 p-5 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 hover:shadow-md transition-shadow">
+                <div class="space-y-8">
+                    <div class="space-y-3">
+                        <p id="question-subtitle" class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-2 opacity-60">Claim your <span class="text-orange-600">AI roadmap</span> by answering this last question.</p>
+                        <h2 id="question-title" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">How helpful was this recommendation?</h2>
+                        <div id="type-badge" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Select scale</div>
+                    </div>
+
+
+                    <!-- Scale Layout (Rating 1-5) -->
+                    <div id="scale-container" class="grid gap-5">
+                        <div class="flex justify-between items-end px-2">
+                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Not at all</span>
+                            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Extremely</span>
+                        </div>
+                        <div class="relative flex justify-between items-center px-4">
+                            <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 rounded-full z-0"></div>
+                            <button onclick="showRoadMap(1)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">1</button>
+                            <button onclick="showRoadMap(2)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">2</button>
+                            <button onclick="showRoadMap(3)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">3</button>
+                            <button onclick="showRoadMap(4)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">4</button>
+                            <button onclick="showRoadMap(5)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">5</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- RoadMap -->
+            <div id="roadmap" class="hidden">
+                <button onclick="showStep('result-part-2');" class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
+                    Claim Your AI Roadmap
+                    <i class="fa-solid fa-star"></i>
+                </button>
+            </div>
+            
+            <!--<div class="text-center">
+                <button onclick="showStep('result-part-2');" class="bg-slate-900 text-white px-10 py-5 rounded-2xl font-bold hover:bg-slate-800 transition-colors">
+                    Road Map
+                </button>
+            </div>-->
+        </section>
+
+        <!-- Step 5: Result -->
+        <section id="step-result-part-2" class="step-container w-full">
             <div class="bg-white/80 backdrop-blur-2xl rounded-[3rem] p-10 md:p-14 shadow-2xl border border-white text-center space-y-10 relative overflow-hidden">
                 <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3">
                     <i id="result-icon" class="fa-solid fa-briefcase text-4xl"></i>
@@ -404,7 +483,7 @@
                 id: 'current_situation',
                 type: 'single',
                 question: "What best describes your current situation?",
-                subtitle: "",
+                subtitle: "Part 1: Background",
                 options: [
                     { id: 'student', label: 'Student', score: { student: 1, professional: 0, break: 0 } },
                     { id: 'professional', label: 'Professional', score: { student: 0, professional: 1, break: 0 } },
@@ -415,7 +494,7 @@
                 id: 'education',
                 type: 'single',
                 question: "What's your level of education?",
-                subtitle: "",
+                subtitle: "Part 1: Background",
                 options: [
                     { id: 'secondary', label: 'Secondary', score: { secondary: 1, bachelor: 0, master: 0, phd: 0 } },
                     { id: 'bachelor', label: 'Bachelor', score: { secondary: 0, bachelor: 1, master: 0, phd: 0 } },
@@ -425,9 +504,9 @@
             },
             {
                 id: 'interests',
-                type: 'single',
+                type: 'multi',
                 question: "What best describes your key interests?",
-                subtitle: "",
+                subtitle: "Part 1: Background",
                 options: [
                     { id: 'tech', label: 'Tech', score: { tech: 1, health: 0, art: 0, business: 0, science: 0 } },
                     { id: 'health', label: 'Health', score: { tech: 0, health: 1, art: 0, business: 0, science: 0 } },
@@ -454,53 +533,130 @@
 
         const questionsPart2 = [
             {
-                id: 'values_scale',
+                id: 'interests_0',
                 type: 'scale', // Representing Q17 as a group of scales
                 question: "Install drywall or flooring in a new house.",
-                subtitle: "Dimension:R",
+                subtitle: "Part 2: How interested are you in...",
                 score: { ["R"]: 1 }
             },
             {
-                id: 'values',
+                id: 'interests_1',
                 type: 'scale', // Representing Q17 as a group of scales
                 question: "Repair damaged mechanical equipment.",
-                subtitle: "Dimension:R",
+                subtitle: "Part 2: How interested are you in...",
                 score: { ["R"]: 1 }
             },
             {
-                id: 'values',
+                id: 'interests_2',
                 type: 'scale', // Representing Q17 as a group of scales
                 question: "Operate heavy machinery.",
-                subtitle: "Dimension:R",
+                subtitle: "Part 2: How interested are you in...",
                 score: { ["R"]: 1 }
             },
             {
-                id: 'values',
+                id: 'interests_3',
                 type: 'scale', // Representing Q17 as a group of scales
                 question: "Analyze data using statistics.",
-                subtitle: "Dimension:I",
+                subtitle: "Part 2: How interested are you in...",
                 score: { ["I"]: 1 }
             },
             {
-                id: 'values',
+                id: 'interests_4',
                 type: 'scale', // Representing Q17 as a group of scales
                 question: "Research scientific phenomena.",
-                subtitle: "Dimension:I",
+                subtitle: "Part 2: How interested are you in...",
                 score: { ["I"]: 1 }
             },
             {
-                id: 'values',
+                id: 'interests_5',
                 type: 'scale', // Representing Q17 as a group of scales
                 question: "Investigate climate change.",
-                subtitle: "Dimension:I",
+                subtitle: "Part 2: How interested are you in...",
                 score: { ["I"]: 1 }
             },
             {
-                id: 'values',
+                id: 'interests_6',
                 type: 'scale', // Representing Q17 as a group of scales
                 question: "Create original art for a gallery.",
-                subtitle: "Dimension:A",
+                subtitle: "Part 2: How interested are you in...",
                 score: { ["A"]: 1 }
+            },
+            {
+                id: 'interests_7',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Write a play or script.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["A"]: 1 }
+            },
+            {
+                id: 'interests_8',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Perform in a musical.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["A"]: 1 }
+            },
+            {
+                id: 'interests_9',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Counsel individuals.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["S"]: 1 }
+            },
+            {
+                id: 'interests_10',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Teach children.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["S"]: 1 }
+            },
+            {
+                id: 'interests_11',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Find support for families.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["S"]: 1 }
+            },
+            {
+                id: 'interests_12',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Advise on financial goals.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["E"]: 1 }
+            },
+            {
+                id: 'interests_13',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Oversee hiring or management.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["E"]: 1 }
+            },
+            {
+                id: 'interests_14',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Sell a house or marketing material.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["E"]: 1 }
+            },
+            {
+                id: 'interests_15',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Keep detailed records of payments.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["C"]: 1 }
+            },
+            {
+                id: 'interests_16',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Verify quality of parts.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["C"]: 1 }
+            },
+            {
+                id: 'interests_17',
+                type: 'scale', // Representing Q17 as a group of scales
+                question: "Sort mail in a post office.",
+                subtitle: "Part 2: How interested are you in...",
+                score: { ["C"]: 1 }
             }
         ];
         const questionsPart3 = [
@@ -642,7 +798,7 @@
             
             // If we run out of RIASEC questions, process results
             if (!q && sectionOfQuestions === 1) {
-                return processResults();
+                return calculateResult();
             }
 
             document.getElementById('question-title').innerText = q.question;
@@ -742,7 +898,7 @@
             }
         }
 
-        function handleScale(rating) {
+        /*function handleScale(rating) {
             const q = visibleQuestions[activeQuestionIndex];
             userAnswers[q.id] = rating;
             updateScaleUI(rating);
@@ -751,6 +907,31 @@
             setTimeout(() => {
                 goToNextStep();
             }, 300);
+        }*/
+
+        function handleScale(value) {
+            const q = visibleQuestions[activeQuestionIndex]; // Use visibleQuestions, not questionsPart2
+            userAnswers[q.id] = Number(value); 
+            
+            if (activeQuestionIndex < visibleQuestions.length - 1) {
+                activeQuestionIndex++;
+                renderQuestion();
+            } else {
+                // If it's the last question of Part 2, calculate
+                calculateResult();
+            }
+        }
+
+        function showRoadMap(value) {
+            userAnswers["last-question"] = value;
+            updateScaleUI(value);
+            
+            // Auto-advance for scale after a short delay for feedback
+            setTimeout(() => {
+                document.getElementById(`last-quiz`).classList.add('hidden');
+                document.getElementById(`roadmap`).classList.remove('hidden');
+            }, 300);
+            
         }
 
         function updateScaleUI(rating) {
@@ -858,21 +1039,124 @@
                 document.getElementById('result-icon').className = `fa-solid ${result.icon} text-4xl`;
                 document.getElementById('result-icon-bg').className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3 ${result.color}`;
                 
-                showStep('result');
+                showStep('result-part-1');
             }, 3000); // Reduced delay for better UX
         }
 
-        function showRoadMap(rating) {
+        function calculateResult() {
+            showStep('calculating');
 
-            //const q = visibleQuestions[activeQuestionIndex];
-            userAnswers["last-question"] = rating;
-            updateScaleUI(rating);
-            
-            // Auto-advance for scale after a short delay for feedback
             setTimeout(() => {
-                document.getElementById(`last-question`).classList.add('hidden');
-                document.getElementById(`roadmap`).classList.remove('hidden');
-            }, 300);
+                // 1. Calculate Scores for RIASEC
+                const scores = { R: 0, I: 0, A: 0, S: 0, E: 0, C: 0 };
+
+                // Process all questions from Part 2
+                questionsPart2.forEach(q => {
+                    const val = userAnswers[q.id] || 0;
+                    // Get the RIASEC key (R, I, A, S, E, or C) from the question's score object
+                    const typeKey = Object.keys(q.score); 
+                    scores[typeKey] += Number(val);
+                });
+
+                // 2. Sort results to find the winner
+                const sortedTypes = Object.keys(scores)
+                    .sort((a, b) => scores[b] - scores[a]);
+
+                // Create Holland Code (e.g., "ISR")
+                const hollandCode = sortedTypes.slice(0, 3).join('');
+                document.getElementById('holland-code-text').innerText = hollandCode;
+
+                let primaryTypeKey = sortedTypes[0]; // Get just the letter (e.g., "I")
+
+                // 3. Update UI Elements
+                document.getElementById('holland-code-text').innerText = hollandCode;
+
+                const typeMapping = {
+                    'R': { title: 'Realistic', icon: 'fa-hammer', lightColor: 'bg-emerald-50', color: 'bg-emerald-500', desc: 'You enjoy practical, hands-on problems and solutions. You prefer working with tools, machinery, or animals.', jobs: ["Engineer", "Technician", "Skilled Trades", "Architect"] },
+                    'I': { title: 'Investigative', icon: 'fa-flask', lightColor: 'bg-blue-50', color: 'bg-blue-500', desc: 'You love searching for facts and figuring out problems mentally. You enjoy observing, learning, and evaluating.', jobs: ["Scientist", "Data Analyst", "Researcher", "Software Developer"] },
+                    'A': { title: 'Artistic', icon: 'fa-palette', lightColor: 'bg-pink-50', color: 'bg-pink-500', desc: 'You value self-expression and original work. You prefer activities that allow for creativity.', jobs: ["Designer", "Writer", "Artist", "UX Designer"] },
+                    'S': { title: 'Social', icon: 'fa-hands-holding-child', lightColor: 'bg-orange-50', color: 'bg-orange-500', desc: 'You like working with others to help, learn, or teach. You are skilled with words and empathy.', jobs: ["Teacher", "Counselor", "Healthcare", "HR Specialist"] },
+                    'E': { title: 'Enterprising', icon: 'fa-chart-line', lightColor: 'bg-indigo-60', color: 'bg-indigo-600', desc: 'You enjoy leading and persuading people. You value business success, influence, and leadership.', jobs: ["Entrepreneur", "Sales", "Manager", "Marketing Director"] },
+                    'C': { title: 'Conventional', icon: 'fa-file-invoice', lightColor: 'bg-slate-60', color: 'bg-slate-600', desc: 'You prefer working with data and details. You value order, accuracy, and following procedures.', jobs: ["Accountant", "Auditor", "Admin", "Project Coordinator"] }
+                };
+
+                const mainResult = typeMapping[primaryTypeKey];
+                
+                // Update Part 1 Result Screen
+                document.getElementById('result-title').innerText = mainResult.title;
+                document.getElementById('result-desc').innerText = mainResult.desc;
+                document.getElementById('result-icon').className = `fa-solid ${mainResult.icon} text-4xl`;
+                
+                // Update Icon Background Color
+                const iconBg = document.getElementById('result-icon-bg');
+                iconBg.className = `w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl mb-6 ${mainResult.color}`;
+
+                // 4. Populate Profile Breakdown
+                const breakdownContainer = document.getElementById('code-breakdown');
+                breakdownContainer.innerHTML = sortedTypes.slice(0, 3).map(type => `
+                    <div class="flex items-center space-x-3 p-3 rounded-xl ${typeMapping[type].lightColor}">
+                        <div class="w-8 h-8 rounded-lg ${typeMapping[type].color} text-white flex items-center justify-center font-bold">&nbsp;${type}&nbsp;</div>
+                        <div>
+                            <p class="text-xs uppercase font-bold text-slate-400 leading-none mb-1">${typeMapping[type].title}</p>
+                            <p class="font-bold text-slate-800 leading-none">${scores[type]} pts</p>
+                        </div>
+                    </div>
+                `).join('');
+
+                // Job Suggestions
+                const jobTitle = document.getElementById('job-title');
+                jobTitle.innerHTML = mainResult.title+' Top Career Paths:';
+                const jobCont = document.getElementById('job-suggestions');
+                jobCont.innerHTML = '';
+
+                // Access the jobs from the identified mainResult
+                mainResult.jobs.forEach(j => {
+                    const d = document.createElement('div');
+                    d.className = "p-5 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 hover:shadow-md transition-shadow";
+                    d.innerHTML = `
+                        <div class="w-10 h-10 rounded-full ${mainResult.lightColor} ${mainResult.text} flex items-center justify-center">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <span class="font-bold text-slate-700">${j}</span>
+                    `;
+                    jobCont.appendChild(d);
+                });
+
+                
+
+                // 5. Initialize Radar Chart
+                renderRIASECChart(Object.values(scores));
+
+                showStep('result-part-1');
+            }, 2000);
+        }
+
+        function renderRIASECChart(dataPoints) {
+            const ctx = document.getElementById('riasecChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Realistic', 'Investigative', 'Artistic', 'Social', 'Enterprising', 'Conventional'],
+                    datasets: [{
+                        data: dataPoints,
+                        backgroundColor: 'rgba(79, 70, 229, 0.2)',
+                        borderColor: '#4f46e5',
+                        borderWidth: 3,
+                        pointRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            suggestedMin: 0,
+                            max: 15,
+                            ticks: { display: false }
+                        }
+                    },
+                    plugins: { legend: { display: false } }
+                }
+            });
         }
     </script>
 </body>
