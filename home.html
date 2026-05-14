@@ -377,84 +377,32 @@
             </div>
             <!-- RoadMap -->
             <div id="roadmap" class="hidden">
-                <button onclick="showStep('result-part-2');" class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
+                <button id="claim-roadmap-btn" onclick="generateAIRoadmap()" class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
                     Claim Your AI Roadmap
                     <i class="fa-solid fa-star"></i>
                 </button>
             </div>
-            
-            <!--<div class="text-center">
-                <button onclick="showStep('result-part-2');" class="bg-slate-900 text-white px-10 py-5 rounded-2xl font-bold hover:bg-slate-800 transition-colors">
-                    Road Map
-                </button>
-            </div>-->
         </section>
 
         <!-- Step 5: Result -->
         <section id="step-result-part-2" class="step-container w-full">
-            <div class="bg-white/80 backdrop-blur-2xl rounded-[3rem] p-10 md:p-14 shadow-2xl border border-white text-center space-y-10 relative overflow-hidden">
-                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl rotate-3">
-                    <i id="result-icon" class="fa-solid fa-briefcase text-4xl"></i>
+            <div class="text-center mb-12">
+                <div id="result-icon-bg" class="w-24 h-24 mx-auto rounded-[2rem] flex items-center justify-center text-white shadow-2xl mb-6">
+                    <i id="result2-icon" class="fa-solid fa-brain-circuit text-4xl"></i>
                 </div>
+                
                 <!-- Career Info -->
-                <div class="space-y-4">
-                    <div class="inline-block px-4 py-1.5 bg-indigo-50 text-indigo-600 rounded-full text-xs font-black uppercase tracking-widest">Your Match</div>
-                    <h2 id="result-title" class="text-4xl md:text-5xl font-black text-slate-900">Career Title</h2>
-                    <p id="result-desc" class="text-slate-500 text-lg font-medium max-w-sm mx-auto leading-relaxed"></p>
+                <div class="flex flex-col items-center justify-center py-10" id="roadmap-loader" style="display:none;">
+                    <div class="custom-loader mb-4"></div>
+                    <p class="text-slate-600 font-medium animate-pulse">Gemini is architecting your best career plan...</p>
                 </div>
-
-                <!-- Market Value -->
-                <div class="grid grid-cols-2 gap-6 pt-4">
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <span class="text-[10px] font-black text-indigo-400 uppercase tracking-widest block mb-2">Market Demand</span>
-                        <span class="font-extrabold text-slate-800 text-lg">9.2% Growth</span>
-                    </div>
-                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm">
-                        <span class="text-[10px] font-black text-purple-400 uppercase tracking-widest block mb-2">Salary Expect.</span>
-                        <span class="font-extrabold text-slate-800 text-lg">$85k - $120k</span>
-                    </div>
-                </div>
-
-                <!-- Last Question and RoadMap -->
-                <div class="space-y-6 pt-6">
-                   
-                    <div id="last-question" class="space-y-8 bg-amber-50 rounded-lg">
-                        <div class="space-y-3">
-                            <div id="type-badged" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[15px] font-black uppercase tracking-widest">To claim your road map, answer this last question.</div>
-                            <h2 id="question-titled" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">How helpful was this recommendation?</h2>
-                            <!--<p id="question-subtitled" class="text-slate-500 text-xl font-medium">Subtitle</p>-->
-                        </div>
-                        <!-- Scale Layout (Rating 1-5) -->
-                        <div id="scale-containerd" class="py-8 space-y-12">
-                            <div class="flex justify-between items-end px-2">
-                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Not at all</span>
-                                <span class="text-xs font-black text-slate-400 uppercase tracking-widest">Extremely</span>
-                            </div>
-                            <div class="relative flex justify-between items-center px-4">
-                                <div class="absolute top-1/2 left-0 w-full h-1 bg-slate-200 -translate-y-1/2 rounded-full z-0"></div>
-                                <button onclick="showRoadMap(1)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">1</button>
-                                <button onclick="showRoadMap(2)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">2</button>
-                                <button onclick="showRoadMap(3)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">3</button>
-                                <button onclick="showRoadMap(4)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">4</button>
-                                <button onclick="showRoadMap(5)" class="scale-dot z-10 w-12 h-12 rounded-full bg-white border-2 border-slate-200 font-bold flex items-center justify-center hover:border-indigo-500">5</button>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- RoadMap -->
-                    <div id="roadmap" class="hidden">
-                        <button class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
-                            Claim Your Roadmap
-                            <i class="fa-solid fa-star"></i>
-                        </button>
-    
-                        <button onclick="location.reload()" class="w-full py-2 text-slate-400 font-bold hover:text-slate-600 transition-colors uppercase text-xs tracking-widest">
-                            Start Over
-                        </button>
-                    </div>
+                <div id="roadmap-display" class="hidden">
+                    <!-- AI generated content goes here -->
                 </div>
             </div>
         </section>
+
+        
 
     </main>
 
@@ -472,6 +420,8 @@
     </footer>
 
     <script>
+         // Provided by environment
+        let hollandCode = "";
         /**
          * Logic Definitions
          * - 'type': 'single', 'multi', or 'scale'
@@ -692,6 +642,15 @@
             business: { title: "Venture Lead", desc: "Scaling ideas and leading high-impact teams.", icon: "fa-briefcase", color: "bg-purple-600" }
         };
 
+        const typeMapping = {
+            'R': { title: 'Realistic', icon: 'fa-hammer', lightColor: 'bg-emerald-50', color: 'bg-emerald-500', desc: 'You enjoy practical, hands-on problems and solutions. You prefer working with tools, machinery, or animals.', jobs: ["Engineer", "Technician", "Skilled Trades", "Architect"] },
+            'I': { title: 'Investigative', icon: 'fa-flask', lightColor: 'bg-blue-50', color: 'bg-blue-500', desc: 'You love searching for facts and figuring out problems mentally. You enjoy observing, learning, and evaluating.', jobs: ["Scientist", "Data Analyst", "Researcher", "Software Developer"] },
+            'A': { title: 'Artistic', icon: 'fa-palette', lightColor: 'bg-pink-50', color: 'bg-pink-500', desc: 'You value self-expression and original work. You prefer activities that allow for creativity.', jobs: ["Designer", "Writer", "Artist", "UX Designer"] },
+            'S': { title: 'Social', icon: 'fa-hands-holding-child', lightColor: 'bg-orange-50', color: 'bg-orange-500', desc: 'You like working with others to help, learn, or teach. You are skilled with words and empathy.', jobs: ["Teacher", "Counselor", "Healthcare", "HR Specialist"] },
+            'E': { title: 'Enterprising', icon: 'fa-chart-line', lightColor: 'bg-indigo-60', color: 'bg-indigo-600', desc: 'You enjoy leading and persuading people. You value business success, influence, and leadership.', jobs: ["Entrepreneur", "Sales", "Manager", "Marketing Director"] },
+            'C': { title: 'Conventional', icon: 'fa-file-invoice', lightColor: 'bg-slate-60', color: 'bg-slate-600', desc: 'You prefer working with data and details. You value order, accuracy, and following procedures.', jobs: ["Accountant", "Auditor", "Admin", "Project Coordinator"] }
+        };
+
         let activeQuestionIndex = 0;
         let userAnswers = {}; // Map of question ID to selected option(s)
         let visibleQuestions = [];
@@ -756,7 +715,7 @@
         }*/
 
         function startQuiz() {
-            userAnswers = {};
+            //userAnswers = {};
             /*/ Check which sequence we are in to load the correct question set
             if (sectionOfQuestions === 1) {
                 // Map questionsPart2 to the format the renderer expects
@@ -776,7 +735,7 @@
             activeQuestionIndex = 0;
             showStep('quiz');
             renderQuestion();
-            }
+        }
 
         function calculateVisibleQuestions() {
             if (sectionOfQuestions === 0) {
@@ -1063,22 +1022,13 @@
                     .sort((a, b) => scores[b] - scores[a]);
 
                 // Create Holland Code (e.g., "ISR")
-                const hollandCode = sortedTypes.slice(0, 3).join('');
+                hollandCode = sortedTypes.slice(0, 3).join('');
                 document.getElementById('holland-code-text').innerText = hollandCode;
 
                 let primaryTypeKey = sortedTypes[0]; // Get just the letter (e.g., "I")
 
                 // 3. Update UI Elements
                 document.getElementById('holland-code-text').innerText = hollandCode;
-
-                const typeMapping = {
-                    'R': { title: 'Realistic', icon: 'fa-hammer', lightColor: 'bg-emerald-50', color: 'bg-emerald-500', desc: 'You enjoy practical, hands-on problems and solutions. You prefer working with tools, machinery, or animals.', jobs: ["Engineer", "Technician", "Skilled Trades", "Architect"] },
-                    'I': { title: 'Investigative', icon: 'fa-flask', lightColor: 'bg-blue-50', color: 'bg-blue-500', desc: 'You love searching for facts and figuring out problems mentally. You enjoy observing, learning, and evaluating.', jobs: ["Scientist", "Data Analyst", "Researcher", "Software Developer"] },
-                    'A': { title: 'Artistic', icon: 'fa-palette', lightColor: 'bg-pink-50', color: 'bg-pink-500', desc: 'You value self-expression and original work. You prefer activities that allow for creativity.', jobs: ["Designer", "Writer", "Artist", "UX Designer"] },
-                    'S': { title: 'Social', icon: 'fa-hands-holding-child', lightColor: 'bg-orange-50', color: 'bg-orange-500', desc: 'You like working with others to help, learn, or teach. You are skilled with words and empathy.', jobs: ["Teacher", "Counselor", "Healthcare", "HR Specialist"] },
-                    'E': { title: 'Enterprising', icon: 'fa-chart-line', lightColor: 'bg-indigo-60', color: 'bg-indigo-600', desc: 'You enjoy leading and persuading people. You value business success, influence, and leadership.', jobs: ["Entrepreneur", "Sales", "Manager", "Marketing Director"] },
-                    'C': { title: 'Conventional', icon: 'fa-file-invoice', lightColor: 'bg-slate-60', color: 'bg-slate-600', desc: 'You prefer working with data and details. You value order, accuracy, and following procedures.', jobs: ["Accountant", "Auditor", "Admin", "Project Coordinator"] }
-                };
 
                 const mainResult = typeMapping[primaryTypeKey];
                 
@@ -1157,6 +1107,160 @@
                     plugins: { legend: { display: false } }
                 }
             });
+        }
+
+        // --- Gemini API Logic ---
+        async function fetchGemini(prompt) {
+            // --- State Management ---
+            const apiKey = "AIzaSyCUh6Op74NaZFILfSLkR9G1O1ZT-WGdkmg";
+            const model = "gemini-2.5-flash";
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            //const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: "OBJECT",
+                        properties: {
+                            overview: { type: "STRING" },
+                            jobs: { type: "ARRAY", items: { type: "STRING" } },
+                            salary_projection: { type: "STRING" }
+                        },
+                        required: ["overview", "jobs" , "salary_projection"]
+                    }
+                }
+            };
+
+            for (let i = 0; i < 2; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', },
+                        body: JSON.stringify(payload)
+                    });
+                    if (!response.ok) throw new Error('API request failed');
+                    const result = await response.json();
+                    const text = result.candidates[0].content.parts[0].text;
+                    if (!text) throw new Error('No content in response');
+                    return JSON.parse(text);
+                } catch (err) {
+                    await new Promise(r => setTimeout(r, Math.pow(2, i) * 1000));
+                }
+            }
+            throw new Error("Maximum retries reached.");
+        }
+
+        /**
+         * Logs all collected survey answers to the console.
+         * This includes background info (Part 1), RIASEC ratings (Part 2), 
+         * and the final feedback rating.
+         */
+        function logSurveyAnswers() {
+            console.log("--- 🚀 Viva Bleuprint: User Survey Results ---");
+            
+            if (Object.keys(userAnswers).length === 0) {
+                console.warn("No answers recorded yet.");
+                return;
+            }
+
+            Object.entries(userAnswers).forEach(([questionId, answer]) => {
+                // 1. Handle Multi-select (Part 1: Interests)
+                if (Array.isArray(answer)) {
+                    const labels = answer.map(a => a.label || a).join(", ");
+                    console.log(`[${questionId}]: ${labels}`);
+                } 
+                // 2. Handle Single-select objects (Part 1: Situation & Education)
+                else if (typeof answer === 'object' && answer !== null && answer.label) {
+                    console.log(`[${questionId}]: ${answer.label}`);
+                } 
+                // 3. Handle Scale ratings (Part 2: RIASEC and Last Question)
+                else {
+                    console.log(`[${questionId}]: Value ${answer}`);
+                }
+            });
+            console.log("----------------------------------------------");
+
+        }
+
+        async function generateAIRoadmap() {
+            // Trigger the console log first
+            logSurveyAnswers();
+
+            const btn = document.getElementById('claim-roadmap-btn');
+            const loader = document.getElementById('roadmap-loader');
+            const display = document.getElementById('roadmap-display');
+
+            // 1. Show the step immediately so the user sees the loader
+            showStep('result-part-2'); 
+            
+            // 2. Ensure loader is visible and display is hidden
+            loader.style.setProperty('display', 'flex', 'important');
+            display.classList.add('hidden');
+            
+            if (!btn || !loader || !display) return;
+
+            //btn.disabled = true;
+            //btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Designing Roadmap...';
+            
+
+            const scoresStr = hollandCode;
+            // Create Holland Code (e.g., "ISR")
+            //Generate a professional roadmap for a user with RIASEC scores: ${scoresStr} .
+            const type = scoresStr.slice(0, 1);
+            const prompt = `Act as a senior career strategist. 
+                            Generate professional jobs for a user with RIASEC scores: ${scoresStr}.
+                            ${(userAnswers.interests || []).map(interest => `${interest.label}, `).join('')}
+                            as interest.
+                            Provide the response as JSON.`;
+
+            
+
+            try {
+                const data = await fetchGemini(prompt);
+                loader.style.display = 'none';
+                display.classList.remove('hidden');
+
+
+                display.innerHTML = `
+                    <div class="mb-10 text-left">
+                        <span class="bg-indigo-100 text-indigo-700 px-4 py-1 rounded-full text-sm font-bold uppercase tracking-wider">AI Analysis Result</span>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mt-4 mb-4">${scoresStr || ''} career path:</h3>
+                        <p class="text-slate-600 leading-relaxed text-lg">${data.overview || ''}</p>
+                        <h3 class="text-3xl font-extrabold text-slate-900 mt-4 mb-4">AI Recommended Jobs</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
+                            ${(data.jobs || []).map(job => `
+                                <div class="jobs-ai p-5 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 hover:shadow-md transition-shadow text-left">
+                                    <div class="w-10 h-10 rounded-full ${typeMapping[type].lightColor} flex items-center justify-center">
+                                        <i class="fas fa-briefcase"></i>
+                                    </div>
+                                    <span class="font-bold text-slate-700">${job}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                        
+                    </div>
+
+                    <div class="mt-12 p-6 bg-gradient-to-br from-indigo-600 to-purple-700 rounded-3xl text-white flex items-center justify-between">
+                        <div>
+                            <p class="text-indigo-100 font-medium">Estimated Mid-Level Earnings</p>
+                            <h6 class="text-3xl font-extrabold text-left">${data.salary_projection || 'Competitive'}</h6>
+                        </div>
+                        <i class="fas fa-coins text-4xl opacity-20"></i>
+                    </div>
+
+                    <br><br>
+                    <button onclick="location.reload()" class="btn-vibrant w-full py-6 text-white rounded-3xl font-black text-xl shadow-xl flex items-center justify-center gap-3">
+                        Retake Test 
+                        <i class="fa-solid fa-star"></i>
+                    </button>
+                `;
+            } catch (err) {
+                loader.innerHTML = `<p class="text-red-500">Error:${err.message} Please refresh and try again in 5 mns.</p>`;
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-wand-magic-sparkles"></i> Claim your AI Roadmap';
+            }
         }
     </script>
 </body>
