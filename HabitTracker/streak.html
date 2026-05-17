@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Habit Quest - Gamified Productivity</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@500&display=swap');
+
+        :root {
+            --bg-dark: #0f172a;
+            --card-bg: #1e293b;
+            --accent: #8b5cf6;
+            --accent-hover: #7c3aed;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .quest-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .quest-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--accent);
+            box-shadow: 0 10px 25px -5px rgba(139, 92, 246, 0.2);
+        }
+
+        .progress-glow {
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.5);
+        }
+
+        .custom-checkbox {
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--accent);
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .custom-checkbox:checked {
+            background-color: var(--accent);
+        }
+
+        .custom-checkbox:checked::after {
+            content: '✓';
+            position: absolute;
+            color: white;
+            font-size: 16px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .stat-badge {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--accent);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-family: 'JetBrains+Mono', monospace;
+            font-size: 0.7rem;
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .completed-text {
+            text-decoration: line-through;
+            color: var(--text-dim);
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+    <div class="max-w-4xl mx-auto">
+        <header class="mb-10">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                <div>
+                    <h1 class="text-4xl font-bold tracking-tight mb-2">Habit Quest<span class="text-purple-500">.</span></h1>
+                    <p class="text-slate-400">Level up your life, one quest at a time.</p>
+                </div>
+                
+                <div class="flex items-center gap-6">
+                    <div class="text-right">
+                        <div class="text-sm uppercase tracking-widest text-slate-500 font-semibold mb-1">Character Level</div>
+                        <div class="flex items-center gap-3">
+                            <span id="level-display" class="text-3xl font-bold text-white">Lv. 1</span>
+                            <div class="w-32 md:w-48 h-3 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
+                                <div id="exp-bar" class="h-full bg-purple-500 progress-glow transition-all duration-500" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Sidebar -->
+            <aside class="space-y-6">
+                <!-- Buffs Card -->
+                <div class="quest-card rounded-2xl p-6">
+                    <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-bolt text-yellow-400"></i> Active Buffs
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-400">Streak Bonus</span>
+                            <span class="stat-badge">+15% XP</span>
+                        </div>
+                        <div class="flex justify-between items-center text-sm">
+                            <span class="text-slate-400">Consistency</span>
+                            <span id="global-streak-bonus" class="stat-badge">+0 XP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Goal Card -->
+                <div class="quest-card rounded-2xl p-6 overflow-hidden relative">
+                    <div class="shimmer absolute inset-0 pointer-events-none"></div>
+                    <h3 class="text-lg font-semibold mb-2">Daily Goal</h3>
+                    <p id="goal-text" class="text-sm text-slate-400 mb-4">Complete 3 quests to earn a Legendary Chest.</p>
+                    <div class="text-2xl font-bold mb-1"><span id="completed-count">0</span>/3</div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full">
+                        <div id="goal-progress" class="h-full bg-emerald-500 transition-all duration-500" style="width: 0%"></div>
+                    </div>
+                </div>
+            </aside>
+
+            <section class="lg:col-span-2 space-y-4">
+                <div class="flex flex-col gap-4 mb-6">
+                    <h2 class="text-xl font-semibold">Current Quests</h2>
+                    <div class="flex flex-wrap gap-2 bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+                        <input type="text" id="quest-title-input" placeholder="Enter quest name..." 
+                               class="bg-slate-800 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-500 flex-grow min-w-[200px]">
+                        
+                        <div class="flex gap-2 w-full md:w-auto">
+                            <select id="quest-category-input" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500 text-slate-300">
+                                <option value="Mind">Mind</option>
+                                <option value="Body">Body</option>
+                                <option value="Growth">Growth</option>
+                                <option value="Social">Social</option>
+                                <option value="Home">Home</option>
+                                <option value="Life">Life</option>
+                            </select>
+
+                            <select id="quest-date-input" class="bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-500 text-slate-300">
+                                <option value="Today">Today</option>
+                                <option value="This Week">This Week</option>
+                                <option value="This Month">This Month</option>
+                                <option value="This Quarter">This Quarter</option>
+                            </select>
+
+                            <div class="relative w-24">
+                                <span class="absolute left-2 top-1/2 -translate-y-1/2 text-[10px] font-bold text-purple-400">XP</span>
+                                <input type="number" id="quest-xp-input" value="25" min="5" 
+                                       class="w-full bg-slate-800 border border-slate-700 rounded-lg pl-7 pr-2 py-2 text-sm focus:outline-none focus:border-purple-500 text-white font-mono">
+                            </div>
+                        </div>
+
+                        <button id="add-quest-btn" class="w-full md:w-auto bg-purple-600 hover:bg-purple-700 text-white px-6 py-2 rounded-lg transition-colors font-medium text-sm">
+                            Accept Quest
+                        </button>
+                    </div>
+                </div>
+
+                <div id="quest-container" class="space-y-3"></div>
+
+                <div id="empty-state" class="hidden text-center py-12 border-2 border-dashed border-slate-800 rounded-2xl">
+                    <i class="fa-solid fa-scroll text-4xl text-slate-700 mb-3"></i>
+                    <p class="text-slate-500">Your quest log is empty. Rest up, hero.</p>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-slate-800">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+                        <div>
+                            <h2 class="text-xl font-semibold">Weekly Habits</h2>
+                            <p class="text-sm text-slate-400">Track streaks and total completions.</p>
+                        </div>
+                        <div class="flex w-full md:w-auto gap-2">
+                            <input type="text" id="habit-input" placeholder="New habit name..." 
+                                   class="bg-slate-900 border border-slate-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-purple-500 flex-grow">
+                            <button id="add-habit-btn" class="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2 rounded-lg transition-colors text-sm font-medium">
+                                Add Habit
+                            </button>
+                        </div>
+                    </div>
+                    <div id="habit-list" class="space-y-4"></div>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-slate-800">
+                    <h2 class="text-xl font-semibold mb-6">Adventure Statistics</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="quest-card rounded-2xl p-6">
+                            <h3 class="text-sm uppercase tracking-widest text-slate-500 font-bold mb-4">Lifetime Progress</h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                    <div class="text-slate-500 text-xs mb-1">Total XP</div>
+                                    <div id="stat-total-xp" class="text-2xl font-bold text-purple-400">0</div>
+                                </div>
+                                <div class="bg-slate-900/50 p-4 rounded-xl border border-slate-800">
+                                    <div class="text-slate-500 text-xs mb-1">Quests Done</div>
+                                    <div id="stat-total-quests" class="text-2xl font-bold text-emerald-400">0</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="quest-card rounded-2xl p-6">
+                            <h3 class="text-sm uppercase tracking-widest text-slate-500 font-bold mb-4">Focus Areas</h3>
+                            <div id="category-stats" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="msg-box" class="fixed bottom-8 right-8 transform translate-y-20 opacity-0 transition-all duration-300 bg-emerald-600 text-white px-6 py-3 rounded-xl shadow-2xl flex items-center gap-3 z-50">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="msg-text">Quest Complete! +25 XP</span>
+    </div>
+
+    <script>
+        let state = {
+            level: 1,
+            xp: 0,
+            xpToNextLevel: 100,
+            totalXp: 0,
+            totalQuests: 0,
+            completedToday: 0,
+            categoryCounts: {
+                Mind: 0, Body: 0, Growth: 0, Social: 0, Home: 0, Life: 0
+            },
+            quests: [],
+            habits: []
+        };
+
+        const questContainer = document.getElementById('quest-container');
+        const emptyState = document.getElementById('empty-state');
+        const levelDisplay = document.getElementById('level-display');
+        const expBar = document.getElementById('exp-bar');
+        const completedCountEl = document.getElementById('completed-count');
+        const goalProgress = document.getElementById('goal-progress');
+        const msgBox = document.getElementById('msg-box');
+        const msgText = document.getElementById('msg-text');
+        const habitList = document.getElementById('habit-list');
+
+        function showMessage(text, isLevelUp = false) {
+            msgText.innerText = text;
+            msgBox.style.backgroundColor = isLevelUp ? '#8b5cf6' : '#10b981';
+            msgBox.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => msgBox.classList.add('translate-y-20', 'opacity-0'), 3000);
+        }
+
+        function renderQuests() {
+            if (state.quests.length === 0) {
+                emptyState.classList.remove('hidden');
+                questContainer.innerHTML = '';
+                return;
+            }
+            emptyState.classList.add('hidden');
+            questContainer.innerHTML = state.quests.map(quest => `
+                <div class="quest-card p-4 rounded-xl flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <input type="checkbox" class="custom-checkbox" ${quest.completed ? 'checked' : ''} onchange="toggleQuest(${quest.id})">
+                        <div>
+                            <h4 class="font-medium ${quest.completed ? 'completed-text' : ''}">${quest.title}</h4>
+                            <div class="flex gap-2 mt-1">
+                                <span class="text-[10px] uppercase font-bold text-slate-500">${quest.category}</span>
+                                <span class="text-[10px] uppercase font-bold text-purple-400">+${quest.xp} XP</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-6">
+                        <div class="text-right hidden sm:block">
+                            <div class="text-[10px] uppercase font-bold text-slate-500">Deadline</div>
+                            <div class="text-xs text-slate-300 font-mono">${quest.dueDate}</div>
+                        </div>
+                        <button onclick="deleteQuest(${quest.id})" class="opacity-0 group-hover:opacity-100 p-2 hover:text-red-400 transition-all">
+                            <i class="fa-solid fa-trash-can text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.toggleQuest = function(id) {
+            const quest = state.quests.find(q => q.id === id);
+            if (!quest) return;
+            quest.completed = !quest.completed;
+            if (quest.completed) {
+                addXP(quest.xp);
+                state.completedToday++;
+                state.totalQuests++;
+                state.categoryCounts[quest.category]++;
+                showMessage(`Quest Complete! +${quest.xp} XP`);
+            } else {
+                state.completedToday = Math.max(0, state.completedToday - 1);
+            }
+            updateUI();
+            renderQuests();
+        };
+
+        window.deleteQuest = function(id) {
+            state.quests = state.quests.filter(q => q.id !== id);
+            renderQuests();
+        };
+
+        document.getElementById('add-quest-btn').onclick = () => {
+            const titleInput = document.getElementById('quest-title-input');
+            const catInput = document.getElementById('quest-category-input');
+            const dateInput = document.getElementById('quest-date-input');
+            const xpInput = document.getElementById('quest-xp-input');
+            
+            const title = titleInput.value.trim();
+            if (!title) { showMessage("Enter a quest title!", false); return; }
+            
+            state.quests.push({
+                id: Date.now(),
+                title: title,
+                xp: parseInt(xpInput.value) || 25,
+                completed: false,
+                category: catInput.value,
+                dueDate: dateInput.value
+            });
+            titleInput.value = '';
+            renderQuests();
+        };
+
+        function renderHabits() {
+            const dayLabels = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
+            habitList.innerHTML = state.habits.map(habit => {
+                const doneCount = habit.days.filter(d => d).length;
+                const progressWidth = (doneCount / 7) * 100;
+                return `
+                <div class="quest-card p-5 rounded-xl">
+                    <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                        <div class="flex-grow w-full">
+                            <div class="flex items-center gap-3 mb-2">
+                                <h4 class="font-bold text-slate-200">${habit.title}</h4>
+                                <span class="stat-badge text-[10px]">${doneCount}/7 Days</span>
+                            </div>
+                            
+                            <!-- Streak Stats Row -->
+                            <div class="grid grid-cols-3 gap-2 mb-4">
+                                <div class="bg-slate-900/40 p-2 rounded-lg border border-slate-700/50 text-center">
+                                    <div class="text-[9px] uppercase text-slate-500 font-bold mb-0.5">Current</div>
+                                    <div class="text-sm font-bold text-orange-400"><i class="fa-solid fa-fire text-[10px]"></i> ${habit.streak}</div>
+                                </div>
+                                <div class="bg-slate-900/40 p-2 rounded-lg border border-slate-700/50 text-center">
+                                    <div class="text-[9px] uppercase text-slate-500 font-bold mb-0.5">Best</div>
+                                    <div class="text-sm font-bold text-yellow-400"><i class="fa-solid fa-crown text-[10px]"></i> ${habit.bestStreak}</div>
+                                </div>
+                                <div class="bg-slate-900/40 p-2 rounded-lg border border-slate-700/50 text-center">
+                                    <div class="text-[9px] uppercase text-slate-500 font-bold mb-0.5">Total</div>
+                                    <div class="text-sm font-bold text-emerald-400"><i class="fa-solid fa-check-double text-[10px]"></i> ${habit.totalWeeks}</div>
+                                </div>
+                            </div>
+
+                            <div class="w-full h-1 bg-slate-800 rounded-full mb-4 overflow-hidden">
+                                <div class="h-full bg-purple-500 transition-all duration-500" style="width: ${progressWidth}%"></div>
+                            </div>
+                            <div class="flex gap-1.5 overflow-x-auto pb-1">
+                                ${habit.days.map((done, idx) => `
+                                    <button onclick="toggleHabitDay(${habit.id}, ${idx})" class="min-w-[32px] w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-bold transition-all ${done ? 'bg-purple-600 text-white border-purple-400' : 'bg-slate-800 text-slate-500 border-slate-700 hover:border-slate-500'} border-2">${dayLabels[idx]}</button>
+                                `).join('')}
+                            </div>
+                        </div>
+                        <div class="flex flex-row md:flex-col gap-2 shrink-0">
+                            <button onclick="finishHabitWeek(${habit.id})" class="bg-emerald-600/20 hover:bg-emerald-600/40 text-emerald-400 px-4 py-2 rounded-lg text-[10px] font-bold border border-emerald-600/30 whitespace-nowrap">FINISH WEEK</button>
+                            <button onclick="deleteHabit(${habit.id})" class="text-slate-600 hover:text-red-400 p-2 text-center"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        window.toggleHabitDay = function(hid, didx) {
+            const h = state.habits.find(h => h.id === hid);
+            h.days[didx] = !h.days[didx];
+            if (h.days[didx]) addXP(10);
+            renderHabits();
+            updateUI();
+        };
+
+        window.finishHabitWeek = function(hid) {
+            const h = state.habits.find(h => h.id === hid);
+            const done = h.days.filter(d => d).length;
+            
+            if (done === 0) {
+                showMessage("Log at least one day first!");
+                return;
+            }
+
+            h.totalWeeks++;
+
+            if (done === 7) {
+                h.streak++;
+                if (h.streak > h.bestStreak) h.bestStreak = h.streak;
+                const bonus = (done * 15) + (h.streak * 20);
+                addXP(bonus);
+                showMessage(`PERFECT WEEK! +${bonus} XP`, true);
+            } else {
+                h.streak = 0;
+                const reward = done * 15;
+                addXP(reward);
+                showMessage(`Week Finished. +${reward} XP`);
+            }
+            
+            h.days = Array(7).fill(false);
+            renderHabits();
+            updateUI();
+        };
+
+        window.deleteHabit = function(id) {
+            state.habits = state.habits.filter(h => h.id !== id);
+            renderHabits();
+        };
+
+        document.getElementById('add-habit-btn').onclick = () => {
+            const val = document.getElementById('habit-input').value.trim();
+            if (!val) return;
+            state.habits.push({ 
+                id: Date.now(), 
+                title: val, 
+                days: Array(7).fill(false), 
+                streak: 0,
+                bestStreak: 0,
+                totalWeeks: 0
+            });
+            document.getElementById('habit-input').value = '';
+            renderHabits();
+        };
+
+        function addXP(amount) {
+            state.xp += amount;
+            state.totalXp += amount;
+            if (state.xp >= state.xpToNextLevel) {
+                state.level++;
+                state.xp -= state.xpToNextLevel;
+                state.xpToNextLevel = Math.floor(state.xpToNextLevel * 1.2);
+                showMessage(`LEVEL UP! Now Level ${state.level}`, true);
+            }
+        }
+
+        function updateUI() {
+            levelDisplay.innerText = `Lv. ${state.level}`;
+            expBar.style.width = `${(state.xp / state.xpToNextLevel) * 100}%`;
+            completedCountEl.innerText = state.completedToday;
+            goalProgress.style.width = `${Math.min((state.completedToday / 3) * 100, 100)}%`;
+            
+            if (state.completedToday >= 3) {
+                document.getElementById('goal-text').innerText = "Daily Goal Reached! Legendary Chest Acquired.";
+            }
+
+            renderStats();
+        }
+
+        function renderStats() {
+            document.getElementById('stat-total-xp').innerText = state.totalXp.toLocaleString();
+            document.getElementById('stat-total-quests').innerText = state.totalQuests;
+            
+            const maxVal = Math.max(...Object.values(state.categoryCounts), 1);
+            document.getElementById('category-stats').innerHTML = Object.entries(state.categoryCounts).map(([name, count]) => `
+                <div>
+                    <div class="flex justify-between text-[10px] mb-1"><span class="text-slate-400">${name}</span><span class="text-slate-200">${count}</span></div>
+                    <div class="w-full h-1 bg-slate-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-purple-500/50 transition-all duration-700" style="width: ${(count/maxVal)*100}%"></div>
+                    </div>
+                </div>`).join('');
+        }
+
+        window.onload = () => {
+            renderQuests();
+            renderHabits();
+            updateUI();
+        };
+    </script>
+</body>
+</html>
