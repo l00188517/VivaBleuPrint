@@ -107,9 +107,6 @@
             border: 1px solid rgba(255, 255, 255, 0.3);
             border-radius: 2.5rem;
         }
-        .align {
-            text-align: justify;
-        }
     </style>
 </head>
 <body class="text-slate-900 selection:bg-indigo-100">
@@ -121,7 +118,7 @@
             <div class="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-indigo-200">
                 <i class="fa-solid fa-rocket text-sm"></i>
             </div>
-            <span>PathFinder</span>
+            <span>Viva Bleuprint</span>
         </button>
         <div id="quiz-progress" class="hidden flex items-center gap-4">
             <div class="w-24 md:w-48 h-2.5 bg-slate-200/50 rounded-full overflow-hidden">
@@ -137,24 +134,13 @@
         <section id="step-landing" class="step-container active text-center space-y-10 py-12">
             <div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 border border-indigo-100 text-indigo-700 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm mb-4 floating">
                 <i class="fa-solid fa-wand-magic-sparkles"></i>
-                Your career roadmap in under 3 minutes.
+                Over 50,000 students found their path
             </div>
             <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] text-slate-900">
-                Stop Guessing. 
-                <br>
-                Find The Career That Fits You.
-                <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">Create your future.</span>
+                Design your <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">dream life.</span>
             </h1>
-            <p class="text-xl text-slate-600 max-w-md mx-auto leading-relaxed font-medium align">
-                Not sure which career path is right for you? 
-                Or finding it hard to fit into traditional roles? 
-                Pathfinder helps you discover the work that truly fits you. 
-                Built on the globally recognised RIASEC career framework and enhanced with AI, 
-                Pathfinder analyses your interests, strengths, personality, and motivations to create a personalised career blueprint. 
-                With a framework validated by leading psychological research and insights from millions of job profiles, 
-                you'll gain practical guidance, discover work environments where you're most likely to thrive, 
-                and explore career opportunities aligned with who you are - not just what looks good on paper.
+            <p class="text-xl text-slate-600 max-w-md mx-auto leading-relaxed font-medium">
+                The most fun way to find a career path that actually fits your vibe and personality.
             </p>
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 mb-8">
                 <span class="relative flex h-2 w-2">
@@ -171,15 +157,15 @@
             <div class="grid grid-cols-3 gap-6 pt-12">
                 <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
                     <i class="fa-solid fa-bolt text-amber-500 text-xl"></i>
-                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">BACKED BY SCIENCE</span>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">Fast Results</span>
                 </div>
                 <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
                     <i class="fa-solid fa-brain text-purple-500 text-xl"></i>
-                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">ENABLED BY AI</span>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">AI Powered</span>
                 </div>
                 <div class="p-4 bg-white/40 backdrop-blur-sm rounded-2xl border border-white/50 flex flex-col items-center gap-2">
                     <i class="fa-solid fa-graduation-cap text-blue-500 text-xl"></i>
-                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">RECOMMENDED BY LEADING GLOBAL CAREER EXPERTS</span>
+                    <span class="text-[10px] font-black uppercase tracking-tighter text-slate-400">Expert Picks</span>
                 </div>
             </div>
         </section>
@@ -423,21 +409,6 @@
     <!-- Footer -->
     <footer class="py-12 px-6 border-t border-slate-200 bg-white">
         <div class="max-w-4xl mx-auto text-center space-y-6">
-            
-            <p class="align">
-                Pathfinder is based on the RIASEC career interest model, 
-                designed by psychologist John Holland. 
-                Career professionals, educators, and organisations around the world use the RIASEC framework to help identify the types of work and environments that best align with an individual's interests and preferences. 
-                It is one of the most widely recognised approaches to career exploration.
-                Built on the simple principle that people tend to feel more fulfilled in work environments that match their natural strengths, 
-                interests and personality, the RIASEC test focuses on which career paths are more likely to be rewarding in the long term.
-                Rather than measuring your abilities or predicting a single "perfect" career, 
-                Pathfinder explores the activities and work environments you're naturally drawn to. 
-                Your responses are used to build a personalised profile based on six career interest areas: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional (RIASEC). 
-                The assessment is an efficient tool that can help individuals choose a degree or career direction and understand when it might be time for a career pivot.
-                Your results are designed to support career exploration and self-discovery. 
-                While no assessment can define your future, Pathfinder provides a valuable starting point for understanding your unique strengths, motivations, and interests, helping you make more informed decisions about your education, career, and professional development.
-            </p>
             <div class="pt-8 text-xs text-slate-400 space-x-4">
                 <a href="#" class="hover:text-indigo-600">Privacy Policy</a>
                 <span>•</span>
@@ -461,49 +432,37 @@
             {
                 id: 'current_situation',
                 type: 'single',
-                question: "What is your current employment status?",
+                question: "What best describes your current situation?",
                 subtitle: "Part 1: Background",
                 options: [
                     { id: 'student', label: 'Student', score: { student: 1, professional: 0, break: 0 } },
-                    { id: 'Recent graduate', label: 'Recent graduate (0-2 years experience)', score: { student: 1, professional: 0, break: 0 } },
-                    { id: 'Early career professional', label: 'Early career professional (3-5 years experience)', score: { student: 1, professional: 0, break: 0 } },
-                    { id: 'Mid-career professional', label: 'Mid-career professional (5-10 years experience)', score: { student: 1, professional: 0, break: 0 } },
-                    { id: 'Senior professional', label: 'Senior professional (10+ years experience)', score: { student: 1, professional: 0, break: 0 } },
-                    { id: 'Currently unemployed', label: 'Currently unemployed', score: { student: 0, professional: 1, break: 0 } }
+                    { id: 'professional', label: 'Professional', score: { student: 0, professional: 1, break: 0 } },
+                    { id: 'career_break', label: 'Career Break', score: { student: 0, professional: 0, break: 1 } }
                 ]
             },
             {
                 id: 'education',
                 type: 'single',
-                question: "What is your highest level of education?",
+                question: "What's your level of education?",
                 subtitle: "Part 1: Background",
                 options: [
-                    { id: 'High School', label: 'High School', score: { secondary: 1, bachelor: 0, master: 0, phd: 0 } },
-                    { id: 'Vocational / Technical training', label: 'Vocational / Technical training', score: { secondary: 1, bachelor: 0, master: 0, phd: 0 } },
-                    { id: 'Bachelors degree', label: 'Bachelors degree', score: { secondary: 1, bachelor: 0, master: 0, phd: 0 } },
-                    { id: 'Masters degree', label: 'Masters degree', score: { secondary: 0, bachelor: 1, master: 0, phd: 0 } },
-                    { id: 'Professional Certificate', label: 'Professional Certificate', score: { secondary: 0, bachelor: 0, master: 1, phd: 0 } },
-                    { id: 'Doctorate / PhD', label: 'Doctorate / PhD', score: { secondary: 0, bachelor: 0, master: 0, phd: 1 } }
+                    { id: 'secondary', label: 'Secondary', score: { secondary: 1, bachelor: 0, master: 0, phd: 0 } },
+                    { id: 'bachelor', label: 'Bachelor', score: { secondary: 0, bachelor: 1, master: 0, phd: 0 } },
+                    { id: 'master', label: 'Master', score: { secondary: 0, bachelor: 0, master: 1, phd: 0 } },
+                    { id: 'phd', label: 'PhD', score: { secondary: 0, bachelor: 0, master: 0, phd: 1 } }
                 ]
             },
             {
                 id: 'interests',
                 type: 'multi',
-                question: "What are your key areas of interest? (select up to 3)",
+                question: "What best describes your key interests?",
                 subtitle: "Part 1: Background",
                 options: [
-                    { id: 'stem', label: 'Science, Engineering (STEM)', score: { tech: 1, health: 0, art: 0, business: 0, science: 0 } },
-                    { id: 'health', label: 'Healthcare, Biomedical research', score: { tech: 0, health: 1, art: 0, business: 0, science: 0 } },
-                    { id: 'business', label: 'Business & Finance', score: { tech: 0, health: 0, art: 1, business: 0, science: 0 } },
-                    { id: 'Media', label: 'Marketing, Media & Communications', score: { tech: 0, health: 0, art: 0, business: 1, science: 0 } },
-                    { id: 'art', label: 'Arts, Design & Creative Media', score: { tech: 1, health: 0, art: 0, business: 0, science: 0 } },
-                    { id: 'tech', label: 'Technology & Computing', score: { tech: 0, health: 1, art: 0, business: 0, science: 0 } },
-                    { id: 'Law', label: 'Law & Social Sciences', score: { tech: 0, health: 0, art: 1, business: 0, science: 0 } },
-                    { id: 'Trades', label: 'Construction, Architecture & Skilled Trades', score: { tech: 0, health: 0, art: 0, business: 1, science: 0 } },
-                    { id: 'Education', label: 'Education & Psychology', score: { tech: 1, health: 0, art: 0, business: 0, science: 0 } },
-                    { id: 'Agriculture', label: 'Environment & Agriculture', score: { tech: 0, health: 1, art: 0, business: 0, science: 0 } },
-                    { id: 'Wellbeing', label: 'Sport, Fitness & Wellbeing', score: { tech: 0, health: 0, art: 1, business: 0, science: 0 } },
-                    { id: 'none', label: 'I’m Not Sure yet', score: { tech: 0, health: 0, art: 0, business: 1, science: 0 } },
+                    { id: 'tech', label: 'Tech', score: { tech: 1, health: 0, art: 0, business: 0, science: 0 } },
+                    { id: 'health', label: 'Health', score: { tech: 0, health: 1, art: 0, business: 0, science: 0 } },
+                    { id: 'art', label: 'Art', score: { tech: 0, health: 0, art: 1, business: 0, science: 0 } },
+                    { id: 'business', label: 'Business', score: { tech: 0, health: 0, art: 0, business: 1, science: 0 } },
+                    { id: 'science', label: 'Science', score: { tech: 0, health: 0, art: 0, business: 0, science: 1 } }
                 ]
             }/*,
             {
@@ -526,7 +485,6 @@
             {
                 id: 'interests_0',
                 type: 'scale', // Representing Q17 as a group of scales
-                //question: "Install drywall or flooring in a new house.",
                 question: "Install drywall or flooring in a new house.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["R"]: 1 }
