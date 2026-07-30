@@ -140,21 +140,16 @@
                 Your career roadmap in under 3 minutes.
             </div>
             <h1 class="text-5xl md:text-7xl font-black tracking-tight leading-[1.1] text-slate-900">
-                Stop Guessing. 
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">Stop Guessing.</span> 
                 <br>
                 Find The Career That Fits You.
                 <br>
                 <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600">Create your future.</span>
             </h1>
             <p class="text-xl text-slate-600 max-w-md mx-auto leading-relaxed font-medium align">
-                Not sure which career path is right for you? 
-                Or finding it hard to fit into traditional roles? 
-                Pathfinder helps you discover the work that truly fits you. 
-                Built on the globally recognised RIASEC career framework and enhanced with AI, 
-                Pathfinder analyses your interests, strengths, personality, and motivations to create a personalised career blueprint. 
-                With a framework validated by leading psychological research and insights from millions of job profiles, 
-                you'll gain practical guidance, discover work environments where you're most likely to thrive, 
-                and explore career opportunities aligned with who you are - not just what looks good on paper.
+                Discover the kind of work you’re actually drawn to. 
+                This assessment helps you uncover the environment in which you are most likely to thrive.
+                Fast-track your career growth with your very own career blueprint.
             </p>
             <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 mb-8">
                 <span class="relative flex h-2 w-2">
@@ -366,9 +361,9 @@
             <div  id="last-quiz" class="w-full py-12 p-5 bg-white rounded-2xl shadow-sm border border-slate-100 flex items-center space-x-3 hover:shadow-md transition-shadow">
                 <div class="space-y-8">
                     <div class="space-y-3">
-                        <p id="question-subtitle" class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-2 opacity-60">Claim your <span class="text-orange-600">AI roadmap</span> by answering this last question.</p>
-                        <h2 id="question-title" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">How helpful was this recommendation?</h2>
-                        <div id="type-badge" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Select scale</div>
+                        <p id="question-subtitle" class="text-indigo-600 font-bold text-sm uppercase tracking-widest mb-2 opacity-60">Please, help us by answering this <span class="text-orange-600">last question</span>.</p>
+                        <h2 id="question-title" class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight">How helpful was this quiz?</h2>
+                        <div id="type-badge" class="inline-block px-3 py-1 bg-indigo-100 text-indigo-600 rounded-lg text-[10px] font-black uppercase tracking-widest">Select From The Scale Below</div>
                     </div>
 
 
@@ -416,28 +411,33 @@
             </div>
         </section>
 
-        
-
     </main>
 
     <!-- Footer -->
     <footer class="py-12 px-6 border-t border-slate-200 bg-white">
+        <!-- Step 6: Footnote -->
+        <section id="step-footnote" class="w-full">
+            <div class="max-w-4xl mx-auto text-center space-y-6">
+                <p class="text-xl text-slate-600 leading-relaxed font-medium align">
+                    Pathfinder is based on the RIASEC career interest model, 
+                    designed by psychologist John Holland. 
+                    Career professionals, educators, and organisations around the world use the RIASEC framework to help identify the types of work and environments that best align with an individual's interests and preferences. 
+                    It is one of the most widely recognised approaches to career exploration.
+                    <br>
+                    Built on the simple principle that people tend to feel more fulfilled in work environments that match their natural strengths, 
+                    interests and personality, the RIASEC test focuses on which career paths are more likely to be rewarding in the long term.
+                    <br>
+                    Rather than measuring your abilities or predicting a single "perfect" career, 
+                    Pathfinder explores the activities and work environments you're naturally drawn to. 
+                    Your responses are used to build a personalised profile based on six career interest areas: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional (RIASEC). 
+                    The assessment is an efficient tool that can help individuals choose a degree or career direction and understand when it might be time for a career pivot.
+                    <br>
+                    Your results are designed to support career exploration and self-discovery. 
+                    While no assessment can define your future, Pathfinder provides a valuable starting point for understanding your unique strengths, motivations, and interests, helping you make more informed decisions about your education, career, and professional development.
+                </p>
+            </div>
+        </section>
         <div class="max-w-4xl mx-auto text-center space-y-6">
-            
-            <p class="align">
-                Pathfinder is based on the RIASEC career interest model, 
-                designed by psychologist John Holland. 
-                Career professionals, educators, and organisations around the world use the RIASEC framework to help identify the types of work and environments that best align with an individual's interests and preferences. 
-                It is one of the most widely recognised approaches to career exploration.
-                Built on the simple principle that people tend to feel more fulfilled in work environments that match their natural strengths, 
-                interests and personality, the RIASEC test focuses on which career paths are more likely to be rewarding in the long term.
-                Rather than measuring your abilities or predicting a single "perfect" career, 
-                Pathfinder explores the activities and work environments you're naturally drawn to. 
-                Your responses are used to build a personalised profile based on six career interest areas: Realistic, Investigative, Artistic, Social, Enterprising, and Conventional (RIASEC). 
-                The assessment is an efficient tool that can help individuals choose a degree or career direction and understand when it might be time for a career pivot.
-                Your results are designed to support career exploration and self-discovery. 
-                While no assessment can define your future, Pathfinder provides a valuable starting point for understanding your unique strengths, motivations, and interests, helping you make more informed decisions about your education, career, and professional development.
-            </p>
             <div class="pt-8 text-xs text-slate-400 space-x-4">
                 <a href="#" class="hover:text-indigo-600">Privacy Policy</a>
                 <span>•</span>
@@ -527,126 +527,143 @@
                 id: 'interests_0',
                 type: 'scale', // Representing Q17 as a group of scales
                 //question: "Install drywall or flooring in a new house.",
-                question: "Install drywall or flooring in a new house.",
+                question: "Carry out hands-on building and renovation work",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["R"]: 1 }
             },
             {
                 id: 'interests_1',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Repair damaged mechanical equipment.",
+                //question: "Repair damaged mechanical equipment.",
+                question: "Repair broken machinery or equipment.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["R"]: 1 }
             },
             {
                 id: 'interests_2',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Operate heavy machinery.",
+                //question: "Operate heavy machinery.",
+                question: "Control and operate large machinery.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["R"]: 1 }
             },
             {
                 id: 'interests_3',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Analyze data using statistics.",
+                //question: "Analyze data using statistics.",
+                question: "Analyse data to identify patterns and trends.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["I"]: 1 }
             },
             {
                 id: 'interests_4',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Research scientific phenomena.",
+                //question: "Research scientific phenomena.",
+                question: "Research scientific topics and discoveries.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["I"]: 1 }
             },
             {
                 id: 'interests_5',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Investigate climate change.",
+                //question: "Investigate climate change.",
+                question: "Investigate environmental issues and their causes.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["I"]: 1 }
             },
             {
                 id: 'interests_6',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Create original art for a gallery.",
+                //question: "Create original art for a gallery.",
+                question: "Create original artwork for a gallery.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["A"]: 1 }
             },
             {
                 id: 'interests_7',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Write a play or script.",
+                //question: "Write a play or script.",
+                question: "Write a story, play or script.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["A"]: 1 }
             },
             {
                 id: 'interests_8',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Perform in a musical.",
+                //question: "Perform in a musical.",
+                question: "Perform in a musical or theatrical production.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["A"]: 1 }
             },
             {
                 id: 'interests_9',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Counsel individuals.",
+                //question: "Counsel individuals.",
+                question: "Counsel and support individuals through personal challenges.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["S"]: 1 }
             },
             {
                 id: 'interests_10',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Teach children.",
+                //question: "Teach children.",
+                question: "Educate and support others in their learning.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["S"]: 1 }
             },
             {
                 id: 'interests_11',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Find support for families.",
+                //question: "Find support for families.",
+                question: "Support families facing challenges.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["S"]: 1 }
             },
             {
                 id: 'interests_12',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Advise on financial goals.",
+                //question: "Advise on financial goals.",
+                question: "Help people plan and achieve their financial goals.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["E"]: 1 }
             },
             {
                 id: 'interests_13',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Oversee hiring or management.",
+                //question: "Oversee hiring or management.",
+                question: "Lead a team or manage people.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["E"]: 1 }
             },
             {
                 id: 'interests_14',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Sell a house or marketing material.",
+                //question: "Sell a house or marketing material.",
+                question: "Sell products or services to customers.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["E"]: 1 }
             },
             {
                 id: 'interests_15',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Keep detailed records of payments.",
+                //question: "Keep detailed records of payments.",
+                question: "Maintain accurate financial records.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["C"]: 1 }
             },
             {
                 id: 'interests_16',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Verify quality of parts.",
+                //question: "Verify quality of parts.",
+                question: "Inspect products or materials to ensure they meet quality standards.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["C"]: 1 }
             },
             {
                 id: 'interests_17',
                 type: 'scale', // Representing Q17 as a group of scales
-                question: "Sort mail in a post office.",
+                //question: "Sort mail in a post office.",
+                question: "Organise and sort information or items accurately.",
                 subtitle: "Part 2: How interested are you in...",
                 score: { ["C"]: 1 }
             }
@@ -701,7 +718,11 @@
         function showStep(id) {
             document.querySelectorAll('.step-container').forEach(step => step.classList.remove('active'));
             document.getElementById(`step-${id}`).classList.add('active');
+            document.getElementById('step-footnote').style.display = id === 'quiz' || id === 'onboarding' || id === 'result-part-1' || id === 'calculating' ? 'none' : 'flex';
             document.getElementById('quiz-progress').style.display = id === 'quiz' ? 'flex' : 'none';
+
+            // Scroll to top of the page when changing sections
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function startOnboarding(section) {
@@ -789,6 +810,9 @@
         }
 
         function renderQuestion() {
+            // Scroll to top on every question change
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
             const q = visibleQuestions[activeQuestionIndex];
             
             // If we run out of background questions, go to RIASEC onboarding
@@ -930,8 +954,9 @@
             // Auto-advance for scale after a short delay for feedback
             setTimeout(() => {
                 document.getElementById(`last-quiz`).classList.add('hidden');
-                document.getElementById(`roadmap`).classList.remove('hidden');
+                //document.getElementById(`roadmap`).classList.remove('hidden');
             }, 300);
+            
             
         }
 
