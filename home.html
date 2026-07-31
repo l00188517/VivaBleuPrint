@@ -810,6 +810,12 @@
         }
 
         function renderQuestion() {
+
+            // Deselect active focus on mobile devices
+            if (document.activeElement && typeof document.activeElement.blur === 'function') {
+                document.activeElement.blur();
+            }
+            
             // Scroll to top on every question change
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
